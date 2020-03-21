@@ -8,7 +8,7 @@ import numpy as np
 from dateutil.relativedelta import relativedelta   
 
 
-def date_exists(date, pth="../../data/tmp/", lang='en'):
+def date_exists(date, pth="/users/m/v/mvarnold/matlab/allotaxonometer/data/tmp/", lang='en'):
     """ ensure 1gram rank file in the right place """
     datestr = date.strftime(format='%Y-%m-%d')
     thayer_pth = '/users/t/a/talshaab/scratch/storywrangler/storyons/1grams/'
@@ -16,6 +16,7 @@ def date_exists(date, pth="../../data/tmp/", lang='en'):
         os.mkdir(pth+lang)
 
     if not os.path.isfile(pth+lang+'/'+lang+'_'+datestr+'.tsv'):
+        print(thayer_pth+datestr+'.tar.gz')
         if os.path.isfile(thayer_pth+datestr+'.tar.gz'):
             subprocess.call(['bash','/users/m/v/mvarnold/matlab/allotaxonometer/figures/storywrangler/unpack_tar.sh', datestr, lang])
         else:
@@ -60,7 +61,8 @@ def make_rank_divergence(date1, date2, lang='en', rt_type='count'):
         pass
 
 def rank_divergence(r1, r2, alpha=1/3):
-    return ((alpha+1) / alpha) * (np.abs( (1 / r1) ** (alpha) - (1 / r2) ** (alpha)) **(1/(1+alpha))) 
+    sign = np.sign(r1 - r2) 
+    return sign * ((alpha+1) / alpha) * (np.abs( (1 / r1) ** (alpha) - (1 / r2) ** (alpha)) **(1/(1+alpha)))
 
 
 def compute_rank_divergence(date1, date2, lang='en', rt_type='count', alpha=1/3):
@@ -69,11 +71,9 @@ def compute_rank_divergence(date1, date2, lang='en', rt_type='count', alpha=1/3)
 
     date1i = datetime.datetime.strptime(date1,'%Y-%m-%d')
     date2i = datetime.datetime.strptime(date2,'%Y-%m-%d')
-    try:   
-        date_exists(date1i, lang=lang)
-        date_exists(date2i, lang=lang)
-    except OSError:
-        pass
+    
+    date_exists(date1i, lang=lang)
+    date_exists(date2i, lang=lang)
     
     df1 = pd.read_csv(f"{pth}{lang}/{lang}_{date1}.tsv", sep='\t')
     df2 = pd.read_csv(f"{pth}{lang}/{lang}_{date2}.tsv", sep='\t')
@@ -106,7 +106,8 @@ def main():
     
     else:
         df = compute_rank_divergence(args.date1, args.date2, args.lang, args.rt_type)
-        print(df.to_string())
+        filename = f"../data/{args.lang}_{args.date1}_{args.date2}_{args.rt_type}_rank_divergence.tsv"
+        df.sort_values(by='rank_divergence',ascending=False).to_csv(filename, sep='\t', index=False)
         
 if __name__ == "__main__":
     main()
