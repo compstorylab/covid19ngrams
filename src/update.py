@@ -12,19 +12,19 @@ def parse_args(args):
 
     parser.add_argument(
         '-l', '--langs',
-        default=Path('.').resolve().parent/'languages.csv',
+        default=Path('.').resolve().parent/'data'/'languages.csv',
         help='path to language dict'
     )
 
     parser.add_argument(
         '-n', '--ngrams',
-        default=Path('.').resolve().parent/'ngrams',
+        default=Path('.').resolve().parent/'data'/'ngrams',
         help='absolute Path of the requested ngrams'
     )
 
     parser.add_argument(
         '-o', '--outdir',
-        default=Path('.').resolve().parent/'timeseries',
+        default=Path('.').resolve().parent/'data'/'timeseries',
         help='absolute Path to save timeseries'
     )
 
