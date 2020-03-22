@@ -14,11 +14,11 @@ def run_lang(lang):
             subprocess.call(command, shell=True)
 
 begin_date = datetime.datetime(2020,3,1)
-end_date = datetime.datetime(2020,3,19)
+end_date = datetime.datetime(2020,3,21)
 
 dates = pd.date_range(start=begin_date, end=end_date, freq='D')
 
-lang_list = ['en','es','pt','ar','ko','fr','id','tr','de','it','ru','tl','hi','fa','ur','pl','ca','nl','ta','el','sw ','sr','fi','ceb','uk']
+lang_list = ['en','es','pt','ar','ko','fr','id','tr','de','it','ru','tl','hi','fa','ur','pl','ca','nl','ta','el','sv','sr','fi','ceb','uk']
 
 with Pool(10) as p:
     p.map(run_lang, lang_list)
