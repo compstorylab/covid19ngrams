@@ -85,8 +85,8 @@ def update_timeseries(save_path, languages_path, ngrams_path):
         ngrams_path (pathlib.Path): path to parse requested ngrams
 
     """
-    topk = 10
-    supported_languages = pd.read_csv(languages_path, header=0, index_col=1)
+    topk = 1000
+    supported_languages = pd.read_csv(languages_path, header=0, index_col=1, comment='#')
 
     for code in supported_languages.index:
         lang = supported_languages.loc[code].Language

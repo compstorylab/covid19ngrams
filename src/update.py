@@ -17,9 +17,9 @@ def parse_args(args):
     )
 
     parser.add_argument(
-        '-n', '--ngrams',
-        default=Path('.').resolve().parent/'data'/'ngrams',
-        help='absolute Path of the requested ngrams'
+        '-t', '--targets',
+        default=Path('.').resolve().parent/'data'/'targets',
+        help='absolute Path of the requested targets'
     )
 
     parser.add_argument(
@@ -40,7 +40,7 @@ def main(args=None):
     args = parse_args(args)
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
 
-    utils.update_timeseries(args.outdir, args.langs, args.ngrams)
+    utils.update_timeseries(args.outdir, args.langs, args.targets)
 
     print(f'Total time elapsed: {time.time() - timeit:.2f} sec.')
 
