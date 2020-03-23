@@ -1,9 +1,10 @@
 
-import logging
 import datetime
 import pandas as pd
 from query import Query
 from pathlib import Path
+
+import vis
 
 
 def query_lang(
@@ -112,3 +113,57 @@ def update_timeseries(save_path, languages_path, ngrams_path):
                 query_lang(out, code, ngrams)
 
         print('-' * 50)
+
+
+def contagiograms(
+        savepath,
+        lang_hashtbl,
+        usr='guest',
+        pwd='roboctopus',
+        case_sensitive=True,
+        start_date = datetime.datetime(2019, 12, 1)
+):
+    """ Plot a grid of contagiograms
+
+    Args:
+        savepath (pathlib.Path): path to save generated plot
+        lang_hashtbl (pathlib.Path): path to parse requested languages
+        usr (string): username to use to access database
+        pwd (string): password to use to access database
+        case_sensitive (bool): a toggle for case_sensitive lookups
+    """
+    n = 12
+    ngrams = []
+    supported_languages = pd.read_csv(lang_hashtbl, header=0, index_col=1, comment='#')
+
+    virus = [
+        ('virus', 'en'), ('virus', 'es'), ('vírus', 'pt'), ('فيروس', 'ar'),
+        ('바이러스', 'ko'), ('virus', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
+        ('virus', 'de'), ('virus', 'it'), ('вирус', 'ru'), ('ویروس', 'fa'),
+        ('вірус', 'uk'),
+    ]
+    coronavirus_emoji = [('🦠', lang) for lang in supported_languages.index][:n]
+    mask_emoji = [('😷', lang) for lang in supported_languages.index][:n]
+    covid19 = [('#covid19', lang) for lang in supported_languages.index][:n]
+    coronavirus = [('#coronavirus', lang) for lang in supported_languages.index][:n]
+
+    for i, (w, lang) in enumerate(coronavirus):
+        n = len(w.split())
+        print(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
+
+        q = Query(usr, pwd, f'{n}grams', lang)
+
+        if case_sensitive:
+            d = q.query_timeseries(w, start_time=start_date)
+        else:
+            d = q.query_insensitive_timeseries(w, start_time=start_date)
+
+        d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
+        d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
+        ngrams.append(d)
+
+    vis.plot_contagiograms(
+        f'{savepath}/#coronavirus',
+        ngrams
+    )
+    print(f'Saved: {savepath}/contagiograms')

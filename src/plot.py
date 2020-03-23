@@ -14,20 +14,20 @@ def parse_args(args):
     subparsers = parser.add_subparsers(help='Arguments for specific action.', dest='dtype')
     subparsers.required = True
 
-    timeseries_parser = subparsers.add_parser(
-        'timeseries',
-        help='Plot timeseries for a given ngram'
+    contagiograms_parser = subparsers.add_parser(
+        'contagiograms',
+        help='Plot a grid of contagiograms: rate of usage timeseries + contagion fractions'
     )
 
     parser.add_argument(
         '-l', '--langs',
-        default=Path('.').parent/'languages.csv',
+        default=Path('.').resolve().parent/'data'/'languages.csv',
         help='path to language dict'
     )
 
     parser.add_argument(
         '-o', '--outdir',
-        default=Path('.').parent/'plots',
+        default=Path('.').resolve().parent/'plots',
         help='absolute Path to save figures'
     )
 
@@ -43,8 +43,11 @@ def main(args=None):
     args = parse_args(args)
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
 
-    if args.dtype == 'timeseries':
-        pass
+    if args.dtype == 'contagiograms':
+        utils.contagiograms(
+            savepath=Path(args.outdir),
+            lang_hashtbl=Path(args.langs)
+        )
     else:
         print('Error: unknown action!')
 
