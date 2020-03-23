@@ -146,6 +146,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
             cax.set_xticklabels([], minor=True)
 
             ax.set_ylim(vmin, vmax)
+            ax.set_yticks(-1 * np.arange(7))
             cax.set_ylim(0, 1)
             cax.set_yticks([0, .5, 1])
             cax.set_yticklabels(['0', '.5', '1'])

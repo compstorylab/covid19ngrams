@@ -136,18 +136,21 @@ def contagiograms(
     ngrams = []
     supported_languages = pd.read_csv(lang_hashtbl, header=0, index_col=1, comment='#')
 
+    # ('वाइरस', 'hi'), ('வைரஸ்', 'ta'), ('ιός', 'el')
     virus = [
         ('virus', 'en'), ('virus', 'es'), ('vírus', 'pt'), ('فيروس', 'ar'),
         ('바이러스', 'ko'), ('virus', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
-        ('virus', 'de'), ('virus', 'it'), ('вирус', 'ru'), ('ویروس', 'fa'),
-        ('вірус', 'uk'),
+        ('virus', 'de'), ('virus', 'it'), ('вирус', 'ru'), ('virus', 'tl'),
+        ('virus', 'hi'), ('ویروس', 'fa'), ('وائرس', 'ur'), ('wirus', 'pl'),
+        ('virus', 'ca'), ('virus', 'nl'), ('virus', 'ta'), ('ιός', 'el'),
+        ('virus', 'sv'), ('вирус', 'sr'), ('virus', 'fi'), ('вірус', 'uk'),
     ]
-    coronavirus_emoji = [('🦠', lang) for lang in supported_languages.index][:n]
-    mask_emoji = [('😷', lang) for lang in supported_languages.index][:n]
-    covid19 = [('#covid19', lang) for lang in supported_languages.index][:n]
-    coronavirus = [('#coronavirus', lang) for lang in supported_languages.index][:n]
+    coronavirus = [('#coronavirus', lang) for lang in supported_languages.index]
+    covid19 = [('#covid19', lang) for lang in supported_languages.index]
+    virus_emoji = [('🦠', lang) for lang in supported_languages.index]
+    mask_emoji = [('😷', lang) for lang in supported_languages.index]
 
-    for i, (w, lang) in enumerate(coronavirus):
+    for i, (w, lang) in enumerate(virus[n:]):
         n = len(w.split())
         print(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
 
@@ -163,7 +166,7 @@ def contagiograms(
         ngrams.append(d)
 
     vis.plot_contagiograms(
-        f'{savepath}/#coronavirus',
+        f'{savepath}/virus2',
         ngrams
     )
     print(f'Saved: {savepath}/contagiograms')
