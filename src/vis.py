@@ -29,12 +29,12 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
         'xtick.labelsize': 12,
         'ytick.labelsize': 12,
         'legend.fontsize': 12,
-        'font.family': 'Times New Roman',
+        'font.family': 'Arial',
     })
 
     vmin, vmax = -6, 0
-    rows, cols = 12, 4
-    fig = plt.figure(figsize=(11, 12))
+    rows, cols = 16, 3
+    fig = plt.figure(figsize=(12, 14))
     gs = fig.add_gridspec(ncols=cols, nrows=rows)
     log = "$\log_{10}$"
     at_color = 'k'
@@ -186,19 +186,19 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
                     )
 
                 cax.text(
-                    -0.25, 0.5, f"RT/OT\nBalance", ha='center',
+                    -0.2, 0.5, f"RT/OT\nBalance", ha='center',
                     verticalalignment='center', transform=cax.transAxes
                 )
                 ax.text(
-                    -0.25, 0.5, f"{log}\nRate of\nUsage", ha='center',
+                    -0.2, 0.5, f"{log}\nRate of\nUsage", ha='center',
                     verticalalignment='center', transform=ax.transAxes
                 )
                 ax.text(
-                    -0.25, 0.1, "Less\nTalked\nAbout\n↓", ha='center',
+                    -0.2, 0.1, "Less\nTalked\nAbout\n↓", ha='center',
                     verticalalignment='center', transform=ax.transAxes, color='grey'
                 )
                 ax.text(
-                    -0.25, 0.9, "↑\nMore\nTalked\n About", ha='center',
+                    -0.2, 0.9, "↑\nMore\nTalked\n About", ha='center',
                     verticalalignment='center', transform=ax.transAxes, color='grey'
                 )
 
