@@ -100,6 +100,7 @@ def update_timeseries(save_path, languages_path, ngrams_path):
                 na_filter=False,
                 sep='\t',
                 encoding='utf8',
+                header=None,
                 quotechar=None,
                 quoting=3
             ).iloc[:, 0].values[:topk]
@@ -136,7 +137,6 @@ def contagiograms(
     ngrams = []
     supported_languages = pd.read_csv(lang_hashtbl, header=0, index_col=1, comment='#')
 
-    # ('वाइरस', 'hi'), ('வைரஸ்', 'ta'), ('ιός', 'el')
     virus = [
         ('virus', 'en'), ('virus', 'es'), ('vírus', 'pt'), ('فيروس', 'ar'),
         ('바이러스', 'ko'), ('virus', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
@@ -145,10 +145,7 @@ def contagiograms(
         ('virus', 'ca'), ('virus', 'nl'), ('virus', 'ta'), ('ιός', 'el'),
         ('virus', 'sv'), ('вирус', 'sr'), ('virus', 'fi'), ('вірус', 'uk'),
     ]
-    coronavirus = [('#coronavirus', lang) for lang in supported_languages.index]
-    covid19 = [('#covid19', lang) for lang in supported_languages.index]
     virus_emoji = [('🦠', lang) for lang in supported_languages.index]
-    mask_emoji = [('😷', lang) for lang in supported_languages.index]
 
     for i, (w, lang) in enumerate(virus[:n]):
         n = len(w.split())
@@ -166,7 +163,7 @@ def contagiograms(
         ngrams.append(d)
 
     vis.plot_contagiograms(
-        f'{savepath}/virus1',
+        f'{savepath}/virus',
         ngrams
     )
     print(f'Saved: {savepath}/contagiograms')

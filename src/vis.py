@@ -83,7 +83,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
             rt = at - ot
 
             cax.annotate(
-                labels[i], xy=(-.16, 1.2), color='k',
+                labels[i], xy=(-.16, 1.2), color='k', weight='bold',
                 xycoords="axes fraction", fontsize=16,
             )
             cax.set_title(bidialg.get_display(df.index.name))
