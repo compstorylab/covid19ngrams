@@ -4,8 +4,6 @@ import glob
 from collections import Counter
 
 
-
-
 lang_list = [
     'en','es','pt','ar','ko','fr','id','tr','de','it','ru','tl','hi',
     'fa','ur','pl','ca','nl','ta','el','sv','sr','fi','ceb','uk'
@@ -21,7 +19,8 @@ datapth = "/users/m/v/mvarnold/covid-19-twitter-timeseries/data/"
 rt_type_dict = {'count': 'count_rank_divergence.tsv',
                 'count_no_rt': 'count_no_rt_rank_divergence.tsv'
                 }
-n = 100
+
+n = 1000
 
 for lang in lang_list:
    for rt_type in ['count', 'count_no_rt']:
