@@ -32,7 +32,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
         'font.family': 'Arial',
     })
 
-    vmin, vmax = -6, 0
+    vmin, vmax = -6, -2
     rows, cols = 16, 3
     fig = plt.figure(figsize=(12, 14))
     gs = fig.add_gridspec(ncols=cols, nrows=rows)
@@ -42,6 +42,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
     rt_color = 'C1'
     labels = 'A B C D E F G H I J K L M N O P Q R S T U V W X Y Z'.split(' ')
     window_size = 7
+    ts_target = 'freq'
 
     date_format = '%m\n%Y'
     major_locator = mdates.MonthLocator()
@@ -72,9 +73,6 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
             cax.xaxis.set_minor_locator(minor_locator)
 
             df.dropna(inplace=True)
-            df['freq'] = df['count'] / df['count'].sum()
-            df['freq_no_rt'] = df['count_no_rt'] / df['count'].sum()
-
             df['freq'] = df['freq'].apply(np.log10)
             df['freq_no_rt'] = df['freq_no_rt'].apply(np.log10)
 
@@ -87,7 +85,6 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
                 xycoords="axes fraction", fontsize=16,
             )
             cax.set_title(bidialg.get_display(df.index.name))
-            #cax.set_title(df.index.name.format(fname), fontproperties=prop)
 
             try:
                 # plot contagion fraction
@@ -113,7 +110,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
 
                 # plot timeseries
                 ax.plot(
-                    df['freq'],
+                    df[ts_target],
                     marker='o',
                     ms=3,
                     color='grey',
@@ -123,12 +120,12 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
                 )
 
                 ax.plot(
-                    df['freq'].idxmax(), df['freq'].max(),
+                    df[ts_target].idxmax(), df[ts_target].max(),
                     'o', ms=15, color='orangered', alpha=0.5
                 )
 
                 if rolling_avg:
-                    ts = df['freq'].rolling(window_size, center=True).mean()
+                    ts = df[ts_target].rolling(window_size, center=True).mean()
                     ax.plot(
                         ts,
                         color=at_color,
@@ -146,7 +143,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
             cax.set_xticklabels([], minor=True)
 
             ax.set_ylim(vmin, vmax)
-            ax.set_yticks(-1 * np.arange(7))
+            ax.set_yticks(-1 * np.arange(2, 7))
             cax.set_ylim(0, 1)
             cax.set_yticks([0, .5, 1])
             cax.set_yticklabels(['0', '.5', '1'])
@@ -160,9 +157,9 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
             cax.spines['left'].set_visible(False)
 
             ax.text(
-                df['freq'].idxmax(),
-                df['freq'].max()+.6,
-                df['freq'].idxmax().strftime('%Y/%m/%d'),
+                df[ts_target].idxmax(),
+                df[ts_target].max()+.6,
+                df[ts_target].idxmax().strftime('%Y/%m/%d'),
                 ha='center',
                 verticalalignment='center',
                 #transform=ax.transAxes,

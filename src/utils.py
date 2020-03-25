@@ -145,7 +145,6 @@ def contagiograms(
         ('virus', 'ca'), ('virus', 'nl'), ('virus', 'ta'), ('ιός', 'el'),
         ('virus', 'sv'), ('вирус', 'sr'), ('virus', 'fi'), ('вірус', 'uk'),
     ]
-    virus_emoji = [('🦠', lang) for lang in supported_languages.index]
 
     for i, (w, lang) in enumerate(virus[:n]):
         n = len(w.split())
@@ -160,10 +159,11 @@ def contagiograms(
 
         d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
         d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
+        print(d.tail(10))
         ngrams.append(d)
 
     vis.plot_contagiograms(
-        f'{savepath}/virus',
+        f'{savepath}/virus1',
         ngrams
     )
     print(f'Saved: {savepath}/contagiograms')
