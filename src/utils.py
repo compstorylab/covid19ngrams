@@ -140,13 +140,22 @@ def contagiograms(
     virus = [
         ('virus', 'en'), ('virus', 'es'), ('vírus', 'pt'), ('فيروس', 'ar'),
         ('바이러스', 'ko'), ('virus', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
-        ('virus', 'de'), ('virus', 'it'), ('вирус', 'ru'), ('virus', 'tl'),
+        ('Virus', 'de'), ('virus', 'it'), ('вирус', 'ru'), ('virus', 'tl'),
         ('virus', 'hi'), ('ویروس', 'fa'), ('وائرس', 'ur'), ('wirus', 'pl'),
         ('virus', 'ca'), ('virus', 'nl'), ('virus', 'ta'), ('ιός', 'el'),
         ('virus', 'sv'), ('вирус', 'sr'), ('virus', 'fi'), ('вірус', 'uk'),
     ]
 
-    for i, (w, lang) in enumerate(virus[:n]):
+    contagiograms = [
+        ('coronavirus', 'en'), ('cuarentena', 'es'), ('corona', 'pt'), ('كورونا', 'ar'),
+        ('코로나', 'ko'), ('quarantaine', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
+        ('Quarantäne', 'de'), ('quarantena', 'it'), ('карантин', 'ru'), ('virus', 'tl'),
+        ('virus', 'hi'), ('قرنطینه', 'fa'), ('مرضی', 'ur'), ('testów', 'pl'),
+        ('confinament', 'ca'), ('virus', 'nl'), ('ரஜ', 'ta'), ('σύνορα', 'el'),
+        ('Italien', 'sv'), ('mere', 'sr'), ('manaa', 'fi'), ('BARK', 'uk'),
+    ]
+
+    for i, (w, lang) in enumerate(contagiograms[:n]):
         n = len(w.split())
         print(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
 
@@ -157,12 +166,14 @@ def contagiograms(
         else:
             d = q.query_insensitive_timeseries(w, start_time=start_date)
 
+        print(f"Highest rank: {d['rank'].min()} -- {d['rank'].idxmin().date()}")
         d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
         d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
         ngrams.append(d)
 
     vis.plot_contagiograms(
-        f'{savepath}/virus',
-        ngrams
+        f'{savepath}/contagiograms',
+        ngrams,
+        metric='rank'
     )
     print(f'Saved: {savepath}/contagiograms')

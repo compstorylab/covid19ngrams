@@ -13,13 +13,14 @@ import warnings
 warnings.simplefilter("ignore")
 
 
-def plot_contagiograms(savepath, ngrams, rolling_avg=True):
+def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='freq'):
     """Plot a grid of contagiograms
 
     Args:
         savepath (pathlib.Path): path to save plot
         ngrams (list[tuple]): a 2D-list of ngrams to plot
         rolling_avg (bool): a toggle for plotting a rolling average of the timeseries
+        metric (string): plot either rate of usage (freq) or rank of work (rank)
     """
 
     plt.rcParams.update({
@@ -40,14 +41,13 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
     rt_color = 'C1'
     labels = 'A B C D E F G H I J K L M N O P Q R S T U V W X Y Z'.split(' ')
     window_size = 7
-    ts_target = 'freq'
 
     date_format = '%m\n%Y'
     major_locator = mdates.MonthLocator()
     minor_locator = mdates.AutoDateLocator()
     contagion_resolution = 'D'
 
-    if ts_target == 'rank':
+    if metric == 'rank':
         vmin, vmax = 1, 6
     else:
         vmin, vmax = -6, -2
@@ -116,7 +116,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
 
                 # plot timeseries
                 ax.plot(
-                    df[ts_target],
+                    df[metric],
                     marker='o',
                     ms=3,
                     color='grey',
@@ -125,19 +125,19 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
                     lw=0,
                 )
 
-                if ts_target == 'rank':
+                if metric == 'rank':
                     ax.plot(
-                        df[ts_target].idxmin(), df[ts_target].min(),
+                        df[metric].idxmin(), df[metric].min(),
                         'o', ms=15, color='orangered', alpha=0.5
                     )
                 else:
                     ax.plot(
-                        df[ts_target].idxmax(), df[ts_target].max(),
+                        df[metric].idxmax(), df[metric].max(),
                         'o', ms=15, color='orangered', alpha=0.5
                     )
 
                 if rolling_avg:
-                    ts = df[ts_target].rolling(window_size, center=True).mean()
+                    ts = df[metric].rolling(window_size, center=True).mean()
                     ax.plot(
                         ts,
                         color=at_color,
@@ -156,7 +156,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
 
             ax.set_ylim(vmin, vmax)
 
-            if ts_target == 'rank':
+            if metric == 'rank':
                 ax.set_yticks(np.arange(1, 7))
                 ax.invert_yaxis()
             else:
@@ -174,11 +174,11 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
             cax.spines['right'].set_visible(False)
             cax.spines['left'].set_visible(False)
 
-            if ts_target == 'rank':
+            if metric == 'rank':
                 ax.text(
-                    df[ts_target].idxmin(),
-                    df[ts_target].min()-.6,
-                    df[ts_target].idxmin().strftime('%Y/%m/%d'),
+                    df[metric].idxmin(),
+                    df[metric].min()-.6,
+                    df[metric].idxmin().strftime('%Y/%m/%d'),
                     ha='center',
                     verticalalignment='center',
                     #transform=ax.transAxes,
@@ -186,9 +186,9 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
                 )
             else:
                 ax.text(
-                    df[ts_target].idxmax(),
-                    df[ts_target].max()+.6,
-                    df[ts_target].idxmax().strftime('%Y/%m/%d'),
+                    df[metric].idxmax(),
+                    df[metric].max()+.6,
+                    df[metric].idxmax().strftime('%Y/%m/%d'),
                     ha='center',
                     verticalalignment='center',
                     #transform=ax.transAxes,
@@ -216,7 +216,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
                     verticalalignment='center', transform=cax.transAxes
                 )
 
-                if ts_target == 'rank':
+                if metric == 'rank':
                     ax.text(
                         -0.2, 0.5, f"{log}\nWord\nRank", ha='center',
                         verticalalignment='center', transform=ax.transAxes
