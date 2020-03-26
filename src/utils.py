@@ -159,11 +159,10 @@ def contagiograms(
 
         d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
         d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
-        print(d.tail(10))
         ngrams.append(d)
 
     vis.plot_contagiograms(
-        f'{savepath}/virus1',
+        f'{savepath}/virus',
         ngrams
     )
     print(f'Saved: {savepath}/contagiograms')
