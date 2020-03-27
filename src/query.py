@@ -96,9 +96,8 @@ class Query:
         tl_df.set_index(0, inplace=True)
 
         df = tl_df.join(df)
+        df['word']=df.index
         df.drop('_id', axis=1, inplace=True)
-        df.set_index('time', inplace=True)
-        df.index = pd.to_datetime(df.index)
         df.rename(columns=db_cols, inplace=True)
         return df
 
