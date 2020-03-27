@@ -1,5 +1,6 @@
 import datetime
 import pandas as pd
+import numpy as np  
 from query import Query
 from pathlib import Path
 
@@ -103,7 +104,7 @@ def query_lang_array(
         start_date = datetime.datetime(
             datetime.date.today().year,
             datetime.date.today().month,
-            datetime.date.today().day - 2
+            datetime.date.today().day - 6
         )
 
     q = Query(f'1grams', lang)
@@ -112,19 +113,22 @@ def query_lang_array(
     print(d_arr.tail(20))
     #print(d_arr.columns)
 
-    print((set(ngrams).difference(d_arr.word.dropna())))
+    #print((set(ngrams).difference(d_arr.word.dropna())))
 
     for k in dfs.keys():
         to_update = d_arr.pivot(index='time', columns='word', values=k)
         to_update = to_update[to_update.index == to_update.index] # remvoe NaTs in index
         dfs[k] = to_update
         dfs[k].index.name = k
-
+        #print(to_update)
         file = Path(f'{save_path}/{k}.tsv')
 
         if file.exists():
             old = pd.read_csv(file, header=0, index_col=0, na_filter=False, sep='\t')
+            old[old=='']=np.nan
+            print(dfs.get(k))
             old = old.combine_first(dfs.get(k))
+            print(old.tail(20))
             old.to_csv(file, sep='\t')
         else:
             dfs.get(k).to_csv(file, sep='\t')
