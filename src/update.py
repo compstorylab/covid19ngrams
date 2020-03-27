@@ -40,7 +40,11 @@ def main(args=None):
     args = parse_args(args)
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
 
-    utils.update_timeseries(args.outdir, args.langs, args.targets)
+    utils.update_timeseries(
+        args.outdir,
+        args.langs,
+        args.targets
+    )
 
     print(f'Total time elapsed: {time.time() - timeit:.2f} sec.')
 

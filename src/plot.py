@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 
 import cli
-import utils
+import vis
 
 
 def parse_args(args):
@@ -44,9 +44,9 @@ def main(args=None):
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
 
     if args.dtype == 'contagiograms':
-        utils.contagiograms(
+        vis.contagiograms(
             savepath=Path(args.outdir),
-            lang_hashtbl=Path(args.langs)
+            lang_hashtbl=Path(args.langs),
         )
     else:
         print('Error: unknown action!')

@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 import numpy as np
 import pandas as pd
+import datetime
+from query import Query
 
 from bidi import algorithm as bidialg
 
@@ -13,13 +15,75 @@ import warnings
 warnings.simplefilter("ignore")
 
 
-def plot_contagiograms(savepath, ngrams, rolling_avg=True):
+def contagiograms(
+        savepath,
+        lang_hashtbl,
+        case_sensitive=True,
+        start_date = datetime.datetime(2019, 12, 1)
+):
+    """ Plot a grid of contagiograms
+
+    Args:
+        savepath (pathlib.Path): path to save generated plot
+        lang_hashtbl (pathlib.Path): path to parse requested languages
+        usr (string): username to use to access database
+        pwd (string): password to use to access database
+        case_sensitive (bool): a toggle for case_sensitive lookups
+    """
+    n = 12
+    ngrams = []
+    supported_languages = pd.read_csv(lang_hashtbl, header=0, index_col=1, comment='#')
+
+    virus = [
+        ('virus', 'en'), ('virus', 'es'), ('vírus', 'pt'), ('فيروس', 'ar'),
+        ('바이러스', 'ko'), ('virus', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
+        ('Virus', 'de'), ('virus', 'it'), ('вирус', 'ru'), ('virus', 'tl'),
+        ('virus', 'hi'), ('ویروس', 'fa'), ('وائرس', 'ur'), ('wirus', 'pl'),
+        ('virus', 'ca'), ('virus', 'nl'), ('virus', 'ta'), ('ιός', 'el'),
+        ('virus', 'sv'), ('вирус', 'sr'), ('virus', 'fi'), ('вірус', 'uk'),
+    ]
+
+    contagiograms = [
+        ('coronavirus', 'en'), ('cuarentena', 'es'), ('corona', 'pt'), ('كورونا', 'ar'),
+        ('코로나', 'ko'), ('quarantaine', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
+        ('Quarantäne', 'de'), ('quarantena', 'it'), ('карантин', 'ru'), ('virus', 'tl'),
+        ('virus', 'hi'), ('قرنطینه', 'fa'), ('مرضی', 'ur'), ('testów', 'pl'),
+        ('confinament', 'ca'), ('virus', 'nl'), ('ரஜ', 'ta'), ('σύνορα', 'el'),
+        ('Italien', 'sv'), ('mere', 'sr'), ('manaa', 'fi'), ('BARK', 'uk'),
+    ]
+
+    for i, (w, lang) in enumerate(contagiograms[:n]):
+        n = len(w.split())
+        print(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
+
+        q = Query(f'{n}grams', lang)
+
+        if case_sensitive:
+            d = q.query_timeseries(w, start_time=start_date)
+        else:
+            d = q.query_insensitive_timeseries(w, start_time=start_date)
+
+        print(f"Highest rank: {d['rank'].min()} -- {d['rank'].idxmin().date()}")
+        d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
+        d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
+        ngrams.append(d)
+
+    plot_contagiograms(
+        f'{savepath}/contagiograms',
+        ngrams,
+        metric='rank'
+    )
+    print(f'Saved: {savepath}/contagiograms')
+
+
+def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='freq'):
     """Plot a grid of contagiograms
 
     Args:
         savepath (pathlib.Path): path to save plot
         ngrams (list[tuple]): a 2D-list of ngrams to plot
         rolling_avg (bool): a toggle for plotting a rolling average of the timeseries
+        metric (string): plot either rate of usage (freq) or rank of work (rank)
     """
 
     plt.rcParams.update({
@@ -31,8 +95,6 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
         'legend.fontsize': 12,
         'font.family': 'Arial',
     })
-
-    vmin, vmax = -6, 0
     rows, cols = 16, 3
     fig = plt.figure(figsize=(12, 14))
     gs = fig.add_gridspec(ncols=cols, nrows=rows)
@@ -47,6 +109,11 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
     major_locator = mdates.MonthLocator()
     minor_locator = mdates.AutoDateLocator()
     contagion_resolution = 'D'
+
+    if metric == 'rank':
+        vmin, vmax = 1, 6
+    else:
+        vmin, vmax = -6, -2
 
     i = 0
     for r in np.arange(0, rows, step=4):
@@ -72,11 +139,11 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
             cax.xaxis.set_minor_locator(minor_locator)
 
             df.dropna(inplace=True)
-            df['freq'] = df['count'] / df['count'].sum()
-            df['freq_no_rt'] = df['count_no_rt'] / df['count'].sum()
-
             df['freq'] = df['freq'].apply(np.log10)
             df['freq_no_rt'] = df['freq_no_rt'].apply(np.log10)
+
+            df['rank'] = df['rank'].apply(np.log10)
+            df['rank_no_rt'] = df['rank_no_rt'].apply(np.log10)
 
             at = df['count'].resample(contagion_resolution).mean()
             ot = df['count_no_rt'].resample(contagion_resolution).mean()
@@ -87,7 +154,6 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
                 xycoords="axes fraction", fontsize=16,
             )
             cax.set_title(bidialg.get_display(df.index.name))
-            #cax.set_title(df.index.name.format(fname), fontproperties=prop)
 
             try:
                 # plot contagion fraction
@@ -113,7 +179,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
 
                 # plot timeseries
                 ax.plot(
-                    df['freq'],
+                    df[metric],
                     marker='o',
                     ms=3,
                     color='grey',
@@ -122,13 +188,19 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
                     lw=0,
                 )
 
-                ax.plot(
-                    df['freq'].idxmax(), df['freq'].max(),
-                    'o', ms=15, color='orangered', alpha=0.5
-                )
+                if metric == 'rank':
+                    ax.plot(
+                        df[metric].idxmin(), df[metric].min(),
+                        'o', ms=15, color='orangered', alpha=0.5
+                    )
+                else:
+                    ax.plot(
+                        df[metric].idxmax(), df[metric].max(),
+                        'o', ms=15, color='orangered', alpha=0.5
+                    )
 
                 if rolling_avg:
-                    ts = df['freq'].rolling(window_size, center=True).mean()
+                    ts = df[metric].rolling(window_size, center=True).mean()
                     ax.plot(
                         ts,
                         color=at_color,
@@ -146,7 +218,13 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
             cax.set_xticklabels([], minor=True)
 
             ax.set_ylim(vmin, vmax)
-            ax.set_yticks(-1 * np.arange(7))
+
+            if metric == 'rank':
+                ax.set_yticks(np.arange(1, 7))
+                ax.invert_yaxis()
+            else:
+                ax.set_yticks(-1 * np.arange(2, 7))
+
             cax.set_ylim(0, 1)
             cax.set_yticks([0, .5, 1])
             cax.set_yticklabels(['0', '.5', '1'])
@@ -159,15 +237,26 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
             cax.spines['right'].set_visible(False)
             cax.spines['left'].set_visible(False)
 
-            ax.text(
-                df['freq'].idxmax(),
-                df['freq'].max()+.6,
-                df['freq'].idxmax().strftime('%Y/%m/%d'),
-                ha='center',
-                verticalalignment='center',
-                #transform=ax.transAxes,
-                color='grey'
-            )
+            if metric == 'rank':
+                ax.text(
+                    df[metric].idxmin(),
+                    df[metric].min()-.6,
+                    df[metric].idxmin().strftime('%Y/%m/%d'),
+                    ha='center',
+                    verticalalignment='center',
+                    #transform=ax.transAxes,
+                    color='grey'
+                )
+            else:
+                ax.text(
+                    df[metric].idxmax(),
+                    df[metric].max()+.6,
+                    df[metric].idxmax().strftime('%Y/%m/%d'),
+                    ha='center',
+                    verticalalignment='center',
+                    #transform=ax.transAxes,
+                    color='grey'
+                )
 
             i += 1
 
@@ -189,10 +278,18 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
                     -0.2, 0.5, f"RT/OT\nBalance", ha='center',
                     verticalalignment='center', transform=cax.transAxes
                 )
-                ax.text(
-                    -0.2, 0.5, f"{log}\nRate of\nUsage", ha='center',
-                    verticalalignment='center', transform=ax.transAxes
-                )
+
+                if metric == 'rank':
+                    ax.text(
+                        -0.2, 0.5, f"{log}\nWord\nRank", ha='center',
+                        verticalalignment='center', transform=ax.transAxes
+                    )
+                else:
+                    ax.text(
+                        -0.2, 0.5, f"{log}\nRate of\nUsage", ha='center',
+                        verticalalignment='center', transform=ax.transAxes
+                    )
+
                 ax.text(
                     -0.2, 0.1, "Less\nTalked\nAbout\n↓", ha='center',
                     verticalalignment='center', transform=ax.transAxes, color='grey'
@@ -200,6 +297,14 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True):
                 ax.text(
                     -0.2, 0.9, "↑\nMore\nTalked\n About", ha='center',
                     verticalalignment='center', transform=ax.transAxes, color='grey'
+                )
+
+            if c == cols-1 and r == 0:
+                cax.text(
+                    .85, 1.3,
+                    f"Last updated\n{df.index[-1].strftime('%Y/%m/%d')}",
+                    ha='center',
+                    verticalalignment='center', transform=cax.transAxes
                 )
 
     plt.subplots_adjust(top=0.97, right=0.97, hspace=0.25)
