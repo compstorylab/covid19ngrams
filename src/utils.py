@@ -63,7 +63,7 @@ def query_lang(
         #dfs[k] = d_arr.pivot(index=pd.date_range(start_date, d_arr.index.max()).date, columns='word', values=k)
         #print(d_arr.groupby(by=['time','word']))
         exit()
-        dfs[k] = d_arr.groupby(by=['time','word'])
+        dfs[k] = d_arr.groupby(by=['time', 'word'])
         dfs[k].index.name = k
         dfs[k]
         file = Path(f'{save_path}/{k}.tsv')
