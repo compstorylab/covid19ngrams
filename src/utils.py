@@ -110,13 +110,13 @@ def query_lang_array(
     d_arr = q.query_timeseries_array(list(ngrams), start_time=start_date)
     print(d_arr.dropna().shape)
     print(d_arr.tail(20))
-    print(d_arr.columns)
+    #print(d_arr.columns)
 
     print((set(ngrams).difference(d_arr.word.dropna())))
 
     for k in dfs.keys():
         to_update = d_arr.pivot(index='time', columns='word', values=k)
-        print(to_update[to_update.index == to_update.index])
+        to_update = to_update[to_update.index == to_update.index] # remvoe NaTs in index
         dfs[k] = to_update
         dfs[k].index.name = k
 
