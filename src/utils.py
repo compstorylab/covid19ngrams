@@ -1,4 +1,3 @@
-
 import datetime
 import pandas as pd
 from query import Query
@@ -109,13 +108,16 @@ def query_lang_array(
 
     q = Query(f'1grams', lang)
     d_arr = q.query_timeseries_array(list(ngrams), start_time=start_date)
-    print(d_arr)
+    print(d_arr.dropna().shape)
+    print(d_arr.tail(20))
+    print(d_arr.columns)
+
+    print((set(ngrams).difference(d_arr.word.dropna())))
 
     for k in dfs.keys():
-        print(pd.date_range(start_date, d_arr.index.max()).date)
-        dfs[k] = d_arr.pivot(index=pd.date_range(start_date, d_arr.index.max()).date, columns='word', values=k)
-        exit()
-        dfs[k] = d_arr.groupby(by=['time', 'word'])
+        to_update = d_arr.pivot(index='time', columns='word', values=k)
+        print(to_update[to_update.index == to_update.index])
+        dfs[k] = to_update
         dfs[k].index.name = k
 
         file = Path(f'{save_path}/{k}.tsv')
