@@ -1,18 +1,13 @@
-
 import datetime
 import pandas as pd
 from query import Query
 from pathlib import Path
-
-import vis
 
 
 def query_lang(
         save_path,
         lang,
         ngrams,
-        usr='guest',
-        pwd='roboctopus',
         case_sensitive=True,
         rt=True,
         start_date=datetime.datetime(2019, 9, 1)
@@ -23,8 +18,6 @@ def query_lang(
         save_path (pathlib.Path): path to save generated timeseries
         lang (string): language collection
         ngrams (list): a list of ngrams to query
-        usr (string): username to use to access database
-        pwd (string): password to use to access database
         case_sensitive (bool): a toggle for case_sensitive lookups
         rt (bool): a toggle to include retweets
         start_date (datetime): starting date for the query
@@ -42,7 +35,7 @@ def query_lang(
             'freq_no_rt': None
         }
 
-    q = Query(usr, pwd, f'1grams', lang)
+    q = Query(f'1grams', lang)
 
     for i, w in enumerate(ngrams):
 
@@ -67,6 +60,66 @@ def query_lang(
 
     for k in dfs.keys():
         dfs[k].index.name = k
+        file = Path(f'{save_path}/{k}.tsv')
+
+        if file.exists():
+            old = pd.read_csv(file, header=0, index_col=0, na_filter=False, sep='\t')
+            old = old.combine_first(dfs.get(k))
+            old.to_csv(file, sep='\t')
+        else:
+            dfs.get(k).to_csv(file, sep='\t')
+
+
+def query_lang_array(
+        save_path,
+        lang,
+        ngrams,
+        rt=True,
+        start_date=datetime.datetime(2019, 9, 1)
+):
+    """Query a given language collection in the database
+
+    Args:
+        save_path (pathlib.Path): path to save generated timeseries
+        lang (string): language collection
+        ngrams (list): a list of ngrams to query
+        rt (bool): a toggle to include retweets
+        start_date (datetime): starting date for the query
+    """
+    if rt:
+        dfs = {
+            'count': None,
+            'rank': None,
+            'freq': None
+        }
+    else:
+        dfs = {
+            'count_no_rt': None,
+            'rank_no_rt': None,
+            'freq_no_rt': None
+        }
+
+    if Path(f'{save_path}/count.tsv').exists():
+        start_date = datetime.datetime(
+            datetime.date.today().year,
+            datetime.date.today().month,
+            datetime.date.today().day - 2
+        )
+
+    q = Query(f'1grams', lang)
+    d_arr = q.query_timeseries_array(list(ngrams), start_time=start_date)
+    print(d_arr.dropna().shape)
+    print(d_arr.tail(20))
+    print(d_arr.columns)
+
+    print((set(ngrams).difference(d_arr.word.dropna())))
+
+    for k in dfs.keys():
+        to_update = d_arr.pivot(index='time', columns='word', values=k)
+        print(to_update[to_update.index == to_update.index])
+        dfs[k] = to_update
+        dfs[k].index.name = k
+
         file = Path(f'{save_path}/{k}.tsv')
 
         if file.exists():
@@ -109,9 +162,9 @@ def update_timeseries(save_path, languages_path, ngrams_path):
             out.mkdir(parents=True, exist_ok=True)
 
             if file.stem.endswith('no_rt'):
-                query_lang(out, code, ngrams, rt=False)
+                query_lang_array(out, code, ngrams, rt=False)
             else:
-                query_lang(out, code, ngrams)
+                query_lang_array(out, code, ngrams)
 
         print('-' * 50)
 
@@ -177,3 +230,4 @@ def contagiograms(
         metric='rank'
     )
     print(f'Saved: {savepath}/contagiograms')
+

@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 import numpy as np
 import pandas as pd
+import datetime
+from query import Query
 
 from bidi import algorithm as bidialg
 
@@ -13,6 +15,69 @@ import warnings
 warnings.simplefilter("ignore")
 
 
+
+def contagiograms(
+        savepath,
+        lang_hashtbl,
+        case_sensitive=True,
+        start_date = datetime.datetime(2019, 12, 1)
+):
+    """ Plot a grid of contagiograms
+
+    Args:
+        savepath (pathlib.Path): path to save generated plot
+        lang_hashtbl (pathlib.Path): path to parse requested languages
+        usr (string): username to use to access database
+        pwd (string): password to use to access database
+        case_sensitive (bool): a toggle for case_sensitive lookups
+    """
+    n = 12
+    ngrams = []
+    supported_languages = pd.read_csv(lang_hashtbl, header=0, index_col=1, comment='#')
+
+    virus = [
+        ('virus', 'en'), ('virus', 'es'), ('vírus', 'pt'), ('فيروس', 'ar'),
+        ('바이러스', 'ko'), ('virus', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
+        ('Virus', 'de'), ('virus', 'it'), ('вирус', 'ru'), ('virus', 'tl'),
+        ('virus', 'hi'), ('ویروس', 'fa'), ('وائرس', 'ur'), ('wirus', 'pl'),
+        ('virus', 'ca'), ('virus', 'nl'), ('virus', 'ta'), ('ιός', 'el'),
+        ('virus', 'sv'), ('вирус', 'sr'), ('virus', 'fi'), ('вірус', 'uk'),
+    ]
+
+    contagiograms = [
+        ('coronavirus', 'en'), ('cuarentena', 'es'), ('corona', 'pt'), ('كورونا', 'ar'),
+        ('코로나', 'ko'), ('quarantaine', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
+        ('Quarantäne', 'de'), ('quarantena', 'it'), ('карантин', 'ru'), ('virus', 'tl'),
+        ('virus', 'hi'), ('قرنطینه', 'fa'), ('مرضی', 'ur'), ('testów', 'pl'),
+        ('confinament', 'ca'), ('virus', 'nl'), ('ரஜ', 'ta'), ('σύνορα', 'el'),
+        ('Italien', 'sv'), ('mere', 'sr'), ('manaa', 'fi'), ('BARK', 'uk'),
+    ]
+
+    for i, (w, lang) in enumerate(contagiograms[:n]):
+        n = len(w.split())
+        print(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
+
+        q = Query(f'{n}grams', lang)
+
+        if case_sensitive:
+            d = q.query_timeseries(w, start_time=start_date)
+        else:
+            d = q.query_insensitive_timeseries(w, start_time=start_date)
+
+        print(f"Highest rank: {d['rank'].min()} -- {d['rank'].idxmin().date()}")
+        d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
+        d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
+        ngrams.append(d)
+
+    plot_contagiograms(
+        f'{savepath}/contagiograms',
+        ngrams,
+        metric='rank'
+    )
+    print(f'Saved: {savepath}/contagiograms')
+
+
+>>>>>>> feature/faster-updates
 def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='freq'):
     """Plot a grid of contagiograms
 
