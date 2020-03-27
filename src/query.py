@@ -1,4 +1,3 @@
-
 import datetime
 import numpy as np
 import pandas as pd
@@ -61,6 +60,41 @@ class Query:
         df.index = pd.to_datetime(df.index)
         df.index.name = word
         return df
+
+    def query_timeseries_array(self, word_list=None, start_time=None):
+        """
+
+        Args:
+            word_list (list): list of strings to query mongo
+            start_time (datetime): starting date for query
+
+        Returns (pd.DataFrame):
+            d_df dataframe of count, rank, and frequency over time for list of n-grams
+
+        """
+        cols = [ 'word','count', 'count_no_rt', 'rank', 'rank_no_rt', 'freq', 'freq_no_rt']
+        db_cols = ['counts', 'count_noRT', 'rank', 'rank_noRT', 'freq', 'freq_noRT', 'word']
+
+        if start_time:
+            query = {'word': {'$in': word_list}, 'time': {'$gte': start_time}}
+            # start = start_time
+        else:
+            query = {'word': {'$in': word_list}}
+            # start = datetime.datetime(2008, 9, 9)
+
+        q_df = pd.DataFrame(list(self.tweets.find(query)))
+        q_df.set_index('word', inplace=True,drop=False)
+        tl_df = pd.DataFrame(word_list)
+        tl_df.set_index(0,inplace=True)
+        q_df = tl_df.join(q_df)
+        q_df.drop('_id',axis=1,inplace=True)
+        q_df.set_index('time',inplace=True)
+        q_df.index = pd.to_datetime(q_df.index, infer_datetime_format=True)
+        q_df.columns = cols
+
+
+       # print(q_df)
+        return q_df
 
     def query_insensitive_timeseries(self, word=None, start_time=None):
         """Query database for n-gram timeseries (case-insensitiv), return pandas dataframe

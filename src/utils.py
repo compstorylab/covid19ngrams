@@ -1,10 +1,10 @@
-
 import datetime
 import pandas as pd
 from query import Query
 from pathlib import Path
 
-import vis
+
+# import vis
 
 
 def query_lang(
@@ -44,29 +44,28 @@ def query_lang(
 
     q = Query(usr, pwd, f'1grams', lang)
 
-    for i, w in enumerate(ngrams):
+    if Path(f'{save_path}/count.tsv').exists():
+        start_date = datetime.datetime(
+            datetime.date.today().year,
+            datetime.date.today().month,
+            datetime.date.today().day - 2
+        )
 
-        if Path(f'{save_path}/count.tsv').exists():
-            start_date = datetime.datetime(
-                datetime.date.today().year,
-                datetime.date.today().month,
-                datetime.date.today().day - 2
-            )
+    # print(f"Retrieving: '{w}'")
+    # print(ngrams)
 
-        print(f"Retrieving: '{w}'")
-        if case_sensitive:
-            d = q.query_timeseries(w, start_time=start_date)
-        else:
-            d = q.query_insensitive_timeseries(w, start_time=start_date)
-
-        for k in dfs.keys():
-            if dfs.get(k) is None:
-                dfs[k] = d[k].to_frame(name=w)
-            else:
-                dfs[k].insert(loc=dfs[k].shape[1], column=w, value=d[k].values)
+    d_arr = q.query_timeseries_array(list(ngrams), start_time=start_date)
 
     for k in dfs.keys():
+        print(k)
+        print(d_arr)
+        print(d_arr.pivot(columns='word', values=k))
+        #dfs[k] = d_arr.pivot(index=pd.date_range(start_date, d_arr.index.max()).date, columns='word', values=k)
+        #print(d_arr.groupby(by=['time','word']))
+        exit()
+        dfs[k] = d_arr.groupby(by=['time','word'])
         dfs[k].index.name = k
+        dfs[k]
         file = Path(f'{save_path}/{k}.tsv')
 
         if file.exists():
@@ -122,7 +121,7 @@ def contagiograms(
         usr='guest',
         pwd='roboctopus',
         case_sensitive=True,
-        start_date = datetime.datetime(2019, 12, 1)
+        start_date=datetime.datetime(2019, 12, 1)
 ):
     """ Plot a grid of contagiograms
 
