@@ -8,14 +8,14 @@ from pymongo.collation import Collation, CollationStrength
 class Query:
     """Class to work with n-gram db"""
 
-    def __init__(self, username, pwd, db, lang):
+    def __init__(self, db, lang, username='guest', pwd='roboctopus'):
         """Python wrapper to access database on hydra.uvm.edu
 
         Args:
-            username: username to access database
-            pwd: password to access database
             db: database to use
             lang: language collection to use
+            username: username to access database
+            pwd: password to access database
         """
         client = MongoClient(f'mongodb://{username}:{pwd}@hydra.uvm.edu:27017')
         db = client[db]
@@ -40,7 +40,7 @@ class Query:
             start = start_time
         else:
             query = {'word': word}
-            start = datetime.datetime(2008, 9, 9)
+            start = datetime.datetime(2019, 9, 1)
 
         data = {
             d: {c: np.nan for c in cols}
@@ -72,29 +72,35 @@ class Query:
             d_df dataframe of count, rank, and frequency over time for list of n-grams
 
         """
-        cols = [ 'word','count', 'count_no_rt', 'rank', 'rank_no_rt', 'freq', 'freq_no_rt']
-        db_cols = ['counts', 'count_noRT', 'rank', 'rank_noRT', 'freq', 'freq_noRT', 'word']
+        db_cols = {
+            'counts': 'count',
+            'count_noRT': 'count_no_rt',
+            'rank': 'rank',
+            'rank_noRT': 'rank_no_rt',
+            'freq': 'freq',
+            'freq_noRT': 'freq_no_rt',
+            'word': 'word',
+        }
 
         if start_time:
             query = {'word': {'$in': word_list}, 'time': {'$gte': start_time}}
-            # start = start_time
+            start = start_time
         else:
             query = {'word': {'$in': word_list}}
-            # start = datetime.datetime(2008, 9, 9)
+            start = datetime.datetime(2019, 9, 1)
 
-        q_df = pd.DataFrame(list(self.tweets.find(query)))
-        q_df.set_index('word', inplace=True,drop=False)
+        df = pd.DataFrame(list(self.tweets.find(query)))
+        df.set_index('word', inplace=True, drop=False)
+
         tl_df = pd.DataFrame(word_list)
-        tl_df.set_index(0,inplace=True)
-        q_df = tl_df.join(q_df)
-        q_df.drop('_id',axis=1,inplace=True)
-        q_df.set_index('time',inplace=True)
-        q_df.index = pd.to_datetime(q_df.index, infer_datetime_format=True)
-        q_df.columns = cols
+        tl_df.set_index(0, inplace=True)
 
-
-       # print(q_df)
-        return q_df
+        df = tl_df.join(df)
+        df.drop('_id', axis=1, inplace=True)
+        df.set_index('time', inplace=True)
+        df.index = pd.to_datetime(df.index)
+        df.rename(columns=db_cols, inplace=True)
+        return df
 
     def query_insensitive_timeseries(self, word=None, start_time=None):
         """Query database for n-gram timeseries (case-insensitiv), return pandas dataframe
@@ -114,7 +120,7 @@ class Query:
             start = start_time
         else:
             query = {'word': word}
-            start = datetime.datetime(2008, 9, 9)
+            start = datetime.datetime(2019, 9, 1)
 
         data = {
             d: {c: np.nan for c in cols}
