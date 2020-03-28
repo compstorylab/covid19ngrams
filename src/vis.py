@@ -15,21 +15,19 @@ import warnings
 warnings.simplefilter("ignore")
 
 
-
 def contagiograms(
         savepath,
         lang_hashtbl,
         case_sensitive=True,
-        start_date = datetime.datetime(2019, 12, 1)
+        start_date=datetime.datetime(2019, 12, 1)
 ):
     """ Plot a grid of contagiograms
 
     Args:
         savepath (pathlib.Path): path to save generated plot
         lang_hashtbl (pathlib.Path): path to parse requested languages
-        usr (string): username to use to access database
-        pwd (string): password to use to access database
         case_sensitive (bool): a toggle for case_sensitive lookups
+        start_date (datetime): starting date for the query
     """
     n = 12
     ngrams = []
@@ -53,7 +51,13 @@ def contagiograms(
         ('Italien', 'sv'), ('mere', 'sr'), ('manaa', 'fi'), ('BARK', 'uk'),
     ]
 
-    for i, (w, lang) in enumerate(contagiograms[:n]):
+    contagiograms2 = [
+        ('social distancing', 'en'), ('coronavirus cases', 'en'), ('tests positive', 'en'), ('stay home', 'en'),
+        ('wash your', 'en'), ('from home', 'en'), ('confirmed cases', 'en'), ('hand sanitizer', 'en'),
+        ('laid off', 'en'), ('panic buying', 'en'), ('Production Act', 'en'), ('toilet paper', 'en'),
+    ]
+
+    for i, (w, lang) in enumerate(contagiograms2[:n]):
         n = len(w.split())
         print(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
 
@@ -77,7 +81,6 @@ def contagiograms(
     print(f'Saved: {savepath}/contagiograms')
 
 
->>>>>>> feature/faster-updates
 def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='freq'):
     """Plot a grid of contagiograms
 
@@ -303,7 +306,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='freq'):
 
             if c == cols-1 and r == 0:
                 cax.text(
-                    .85, 1.3,
+                    .88, 1.4,
                     f"Last updated\n{df.index[-1].strftime('%Y/%m/%d')}",
                     ha='center',
                     verticalalignment='center', transform=cax.transAxes
