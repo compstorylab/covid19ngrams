@@ -93,7 +93,7 @@ def update_timeseries(save_path, languages_path, ngrams_path, database):
             out = Path(f'{save_path}/{lang}/')
             out.mkdir(parents=True, exist_ok=True)
 
-            print(f"Retrieving: '{len(ngrams)} {database} ...'")
+            print(f"Retrieving: {len(ngrams)} {database} ...")
             if file.stem.endswith('no_rt'):
                 query_lang_array(out, lang_code, database, ngrams, rt=False)
             else:

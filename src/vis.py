@@ -52,9 +52,9 @@ def contagiograms(
     ]
 
     contagiograms2 = [
-        ('social distancing', 'en'), ('coronavirus cases', 'en'), ('tests positive', 'en'), ('stay home', 'en'),
+        ('social distancing', 'en'), ('coronavirus cases', 'en'), ('tested positive', 'en'), ('a pandemic', 'en'),
         ('wash your', 'en'), ('from home', 'en'), ('confirmed cases', 'en'), ('hand sanitizer', 'en'),
-        ('laid off', 'en'), ('panic buying', 'en'), ('Production Act', 'en'), ('toilet paper', 'en'),
+        ('laid off', 'en'), ('panic buying', 'en'), ('stay home', 'en'), ('toilet paper', 'en'),
     ]
 
     for i, (w, lang) in enumerate(contagiograms2[:n]):
