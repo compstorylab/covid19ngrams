@@ -16,7 +16,7 @@ including data related to how populations are talking about
 the unfolding pandemic through news and stories.
 
 To in part help on the social media side, we curate a set of 1000 day-scale 
-time series of 1-grams across [24 languages](data/languages.csv) 
+time series of n-grams across [24 languages](data/languages.csv) 
 on Twitter that are most 'important' 
 for March 2020 with respect to March 2019. 
 We determine importance through our 

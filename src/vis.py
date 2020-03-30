@@ -76,7 +76,7 @@ def contagiograms(
     plot_contagiograms(
         f'{savepath}/contagiograms',
         ngrams,
-        metric='rank'
+        metric='freq'
     )
     print(f'Saved: {savepath}/contagiograms')
 
@@ -306,7 +306,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='freq'):
 
             if c == cols-1 and r == 0:
                 cax.text(
-                    .88, 1.4,
+                    .88, 1.6,
                     f"Last updated\n{df.index[-1].strftime('%Y/%m/%d')}",
                     ha='center',
                     verticalalignment='center', transform=cax.transAxes
