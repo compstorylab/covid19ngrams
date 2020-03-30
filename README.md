@@ -1,5 +1,7 @@
 # COVID19 related n-gram time series for 24 languages on Twitter
 
+### [[website](http://compstorylab.org/covid19ngrams/)] [[arXiv](http://pdodds.w3.uvm.edu/permanent-share/covid19-ngrams-revtex4.pdf)]
+
 In confronting the global spread of the coronavirus disease COVID-19 pandemic 
 we must have coordinated medical, operational, and political responses.
 
@@ -14,7 +16,7 @@ including data related to how populations are talking about
 the unfolding pandemic through news and stories.
 
 To in part help on the social media side, we curate a set of 1000 day-scale 
-time series of 1-grams across [24 languages](data/languages.csv) 
+time series of n-grams across [24 languages](data/languages.csv) 
 on Twitter that are most 'important' 
 for March 2020 with respect to March 2019. 
 We determine importance through our 
@@ -31,9 +33,6 @@ The world's collective attention dropped away while the virus spread out from Ch
 Our main intent is for other researchers to use these time series 
 to enhance whatever analyses that may be of use during the pandemic 
 as well as for retrospective investigations.
-
-[[Website](http://compstorylab.org/covid19ngrams/)]
-[[arXiv](http://pdodds.w3.uvm.edu/permanent-share/covid19-ngrams-revtex4.pdf)]
 
 ![contagiograms1](plots/contagiograms1.png)\
 ![contagiograms2](plots/contagiograms2.png)
@@ -55,7 +54,8 @@ biological andsocial contagion models:
 When a 1-gram appears in more retweeted than organic material,
 we view it as being socially amplified.
 
-For each language, we export [6 **(T x N) matrices**](data/timeseries/English) 
+For each language, 
+we export [6 **(T x N) matrices**](data/timeseries/1grams/English) 
 where every row is a date index and every column is a unique 1gram
 from the top 1000 1grams including:
 - Number of occurrences [`count`, `count_no_rt`]

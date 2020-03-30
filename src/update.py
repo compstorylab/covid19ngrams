@@ -11,6 +11,12 @@ def parse_args(args):
     parser = cli.parser()
 
     parser.add_argument(
+        '-d', '--database',
+        default='1grams',
+        help='database codename to update'
+    )
+
+    parser.add_argument(
         '-l', '--langs',
         default=Path('.').resolve().parent/'data'/'languages.csv',
         help='path to language dict'
@@ -18,7 +24,7 @@ def parse_args(args):
 
     parser.add_argument(
         '-t', '--targets',
-        default=Path('.').resolve().parent/'data'/'targets',
+        default=Path('.').resolve().parent/'data'/'rank_turbulence_divergence',
         help='absolute Path of the requested targets'
     )
 
@@ -41,9 +47,10 @@ def main(args=None):
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
 
     utils.update_timeseries(
-        args.outdir,
+        args.outdir/args.database,
         args.langs,
-        args.targets
+        args.targets/args.database,
+        args.database
     )
 
     print(f'Total time elapsed: {time.time() - timeit:.2f} sec.')
