@@ -11,12 +11,6 @@ def parse_args(args):
     parser = cli.parser()
 
     parser.add_argument(
-        '-d', '--database',
-        default='1grams',
-        help='database codename to update'
-    )
-
-    parser.add_argument(
         '-l', '--langs',
         default=Path('.').resolve().parent/'data'/'languages.csv',
         help='path to language dict'
@@ -46,12 +40,14 @@ def main(args=None):
     args = parse_args(args)
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
 
-    utils.update_timeseries(
-        args.outdir/args.database,
-        args.langs,
-        args.targets/args.database,
-        args.database
-    )
+    for f in args.targets.glob('*grams'):
+        print(f.stem)
+        utils.update_timeseries(
+            save_path=args.outdir/f.stem,
+            languages_path=args.langs,
+            ngrams_path=args.targets/f.stem,
+            database=f.stem.split('_')[-1]
+        )
 
     print(f'Total time elapsed: {time.time() - timeit:.2f} sec.')
 

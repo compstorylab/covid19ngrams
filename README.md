@@ -55,7 +55,7 @@ When a 1-gram appears in more retweeted than organic material,
 we view it as being socially amplified.
 
 For each language, 
-we export [6 **(T x N) matrices**](data/timeseries/1grams/English) 
+we export [6 **(T x N) matrices**]
 where every row is a date index and every column is a unique 1gram
 from the top 1000 1grams including:
 - Number of occurrences [`count`, `count_no_rt`]
