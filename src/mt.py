@@ -30,9 +30,9 @@ def parse_args(args):
     )
 
     parser.add_argument(
-        '-t', '--targets',
+        '-t', '--ngrams',
         default=Path('.').resolve().parent/'data'/'rank_turbulence_divergence',
-        help='absolute Path of the requested targets'
+        help='absolute Path of the requested ngrams'
     )
 
     parser.add_argument(
@@ -54,16 +54,16 @@ def main(args=None):
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
 
     if args.dtype == 'filter':
-        for f in args.targets.glob('*grams'):
+        for f in args.ngrams.glob('*grams'):
             print(f.stem)
             utils.filter_ngrams(
                 save_path=args.outdir / f.stem,
-                ngrams_path=args.targets / f.stem
+                ngrams_path=args.ngrams / f.stem
             )
     elif args.dtype == 'compile':
         utils.amt(
             save_path=args.outdir/'amt',
-            ngrams_path=args.outdir/'targets'
+            ngrams_path=args.outdir/'ngrams'
         )
 
     elif args.dtype == 'format':
