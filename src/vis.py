@@ -124,9 +124,9 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='freq'):
     contagion_resolution = 'D'
 
     if metric == 'rank':
-        vmin, vmax = 1, 6
+        vmin, vmax = 0, 6
     else:
-        vmin, vmax = -6, -2
+        vmin, vmax = -6, -1
 
     i = 0
     for r in np.arange(0, rows, step=4):
