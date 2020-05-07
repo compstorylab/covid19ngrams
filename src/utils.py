@@ -208,7 +208,7 @@ def format_survey(save_path, survey_path):
     ratings.to_csv(f'{save_path}/survey.tsv', sep='\t')
 
 
-def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum'):
+def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum', spam=False):
     """Plot a rank timeseries for each topic
 
     Args:
@@ -218,6 +218,7 @@ def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum'):
         n2_path (pathlib.Path): path to 2grams timeseries
         resolution (string): desired data resolution
         agg (string): aggregation function to use
+        spam (bool): a toggle for including the spam column
 
     Returns: (3 x pd.DataFrame)
         Dataframes for ratings and ngram timeseries
@@ -229,7 +230,9 @@ def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum'):
         index_col=0,
         sep='\t',
     )
-    ratings.drop('Spam', axis=1, inplace=True)
+    if not spam:
+        ratings.drop('Spam', axis=1, inplace=True)
+
     ratings = ratings.div(ratings.sum(axis=1), axis=0)
 
     n1 = pd.read_csv(
@@ -303,7 +306,7 @@ def stack(savepath, survey_path, n1_path, n2_path):
         n1_path (pathlib.Path): path to 1grams timeseries
         n2_path (pathlib.Path): path to 2grams timeseries
     """
-    ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='D', agg='sum')
+    ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='D', agg='sum', spam=True)
 
     for n in [n1, n2]:
         topics = ratings.loc[n.columns].dropna(how='all')

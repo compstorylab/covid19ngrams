@@ -651,7 +651,6 @@ def plot_rank(savepath, ranks):
     ax = pd.plotting.parallel_coordinates(
         ranks, ax=ax, class_column='index',
         color=colors, lw=5, axvlines=False,
-        alpha=.75
     )
     #ax.tick_params(axis='x', rotation=45)
 
@@ -711,31 +710,86 @@ def stackplot(savepath, counts):
         'font.family': 'Arial',
     })
 
-    fig, nax = plt.subplots(figsize=(10, 6))
+    def stream(ax, x, y, labels, colors):
+
+        if len(labels) == 1:
+            ax.stackplot(
+                x,
+                y,
+                baseline='zero',
+                labels=labels,
+                colors=colors
+            )
+            ax.set_title(labels[0], y=.5)
+            ax.set_ylim(0, 2.5*10 ** 6)
+            ax.ticklabel_format(axis='y', style='sci', useMathText=True, scilimits=(0, 3))
+        else:
+            ax.stackplot(
+                x,
+                y,
+                baseline='sym',
+                labels=labels,
+                colors=colors
+            )
+            ax.set_ylim(-4 * 10 ** 6, 4 * 10 ** 6)
+            ax.get_yaxis().set_visible(False)
+
+        ax.set_ylabel(f'Volume')
+        ax.set_xlabel("")
+        ax.set_xlim(counts.index[0], counts.index[-1])
+
+        ax.xaxis.set_major_locator(mdates.MonthLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+        ax.xaxis.set_minor_locator(mdates.WeekdayLocator(byweekday=MO))
+
+
     counts = counts.astype(float)
     counts = counts[counts.columns[counts.ix[counts.last_valid_index()].argsort()]]
     colors = [consts.colors[t] for t in counts.columns]
 
-    nax.stackplot(
-        counts.index,
-        *counts.values.T,
-        baseline='sym',
+    fig = plt.figure(figsize=(12, 14))
+    cols, rows = 4, 4
+    gs = fig.add_gridspec(ncols=cols, nrows=rows)
+    nax = fig.add_subplot(gs[:1, :])
+    stream(
+        ax=nax,
+        x=counts.index,
+        y=counts.values.T,
         labels=counts.columns,
         colors=colors
     )
+    nax.annotate(
+        consts.tags[0], xy=(0, .8),
+        color='k', weight='bold',
+        xycoords="axes fraction",
+        fontsize=16
+    )
 
-    nax.set_ylabel(f'Volume')
-    nax.set_xlabel("")
-    nax.set_xlim(counts.index[0], counts.index[-1])
+    topic_list = np.split(counts.columns[::-1], 2)
+    tag_list = np.array_split(consts.tags[1:counts.shape[1]+1], 2)
+    for r, (topics, tags) in enumerate(zip(topic_list, tag_list)):
+        for c, (t, tag) in enumerate(zip(topics, tags)):
+            ax = fig.add_subplot(gs[r+1, c])
+            stream(
+                ax=ax,
+                x=counts.index,
+                y=counts[t],
+                labels=[t],
+                colors=[consts.colors[t]]
+            )
+            if c != 0:
+                ax.get_yaxis().set_visible(False)
 
-    nax.xaxis.set_major_locator(mdates.MonthLocator())
-    nax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-    nax.xaxis.set_minor_locator(mdates.WeekdayLocator(byweekday=MO))
+            ax.annotate(
+                tag, xy=(-.1, 1.1),
+                color='k', weight='bold',
+                xycoords="axes fraction",
+                fontsize=16
+            )
 
-    handles, labels = nax.get_legend_handles_labels()
-    nax.legend(handles[::-1], labels[::-1], frameon=False, loc='upper left')
     sns.despine(left=True)
-    nax.get_yaxis().set_visible(False)
+    nax.get_xaxis().set_visible(False)
+    nax.spines['bottom'].set_visible(False)
 
     plt.tight_layout()
     plt.savefig(f'{savepath}.pdf', bbox_inches='tight', pad_inches=.25)
