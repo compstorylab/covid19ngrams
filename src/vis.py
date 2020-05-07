@@ -16,7 +16,7 @@ import matplotlib.colors as mcolors
 import matplotlib.colorbar as colorbar
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-import utils
+import consts
 
 import warnings
 warnings.simplefilter("ignore")
@@ -645,16 +645,7 @@ def plot_rank(savepath, ranks):
     gs = fig.add_gridspec(ncols=cols, nrows=rows)
 
     ax = fig.add_subplot(gs[:, :])
-    colors = {
-        'Pandemic': 'C0',
-        'Health': 'C1',
-        'Economics': 'C2',
-        'Politics': 'C3',
-        'Religion': 'C4',
-        'Education': 'C5',
-        'Entertainment': 'C6'
-    }
-    colors = [colors[t] for t in ranks['index']]
+    colors = [consts.colors[t] for t in ranks['index']]
 
     ax = pd.plotting.parallel_coordinates(
         ranks, ax=ax, class_column='index',
@@ -720,35 +711,30 @@ def stackplot(savepath, counts):
     })
 
     fig, nax = plt.subplots(figsize=(10, 6))
+    counts = counts.astype(float)
+    colors = [consts.colors[t] for t in counts.columns]
 
-    counts = counts.divide(counts.sum(axis=1), axis=0)
-    nax = counts.plot.area(stacked=True, ax=nax, alpha=.75)
+    nax.stackplot(
+        counts.index,
+        *counts.values.T,
+        baseline='zero',
+        labels=counts.columns,
+        colors=colors
+    )
 
-    nax.set_ylabel(f'Relative rate of usage')
+    nax.set_ylim(10**5, 10**7)
+    nax.set_yscale('log')
+    nax.set_ylabel(f'Volume')
     nax.set_xlabel("")
-    nax.set_ylim(0, 1)
     nax.set_xlim(counts.index[0], counts.index[-1])
-    nax.grid(True, which="both", axis='both', zorder=0, alpha=.3, linestyle='-')
 
     nax.xaxis.set_major_locator(mdates.MonthLocator())
     nax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
     nax.xaxis.set_minor_locator(mdates.DayLocator())
-    plt.setp(nax.xaxis.get_majorticklabels(), ha='center', rotation=45)
 
-    nax.legend_.remove()
-    ss = 0
-    lines, labels = nax.get_legend_handles_labels()
-    for i, label in enumerate(labels):
-        d = counts.index[0]
-        ss += counts.loc[d, label]
-        nax.annotate(
-            label,
-            xy=(d, ss - .065),
-            xytext=(6, 0), color='k',
-            xycoords='data',
-            textcoords="offset points",
-            size=14, va="center"
-        )
+    handles, labels = nax.get_legend_handles_labels()
+    nax.legend(handles[::-1], labels[::-1], frameon=False, loc='upper left')
+    sns.despine()
 
     plt.tight_layout()
     plt.savefig(f'{savepath}.pdf', bbox_inches='tight', pad_inches=.25)
@@ -782,8 +768,8 @@ def violinplot(savepath, counts):
         y="vol",
         orient='v',
         marker='h',
-        alpha=.75,
         edgecolors='face',
+        palette=consts.colors
     )
 
     ax.set_ylim(counts.vol.min()-10**5, counts.vol.max()+10**5)
@@ -797,4 +783,3 @@ def violinplot(savepath, counts):
     ax.spines['bottom'].set_visible(False)
 
     plt.savefig(f'{savepath}.pdf', bbox_inches='tight', pad_inches=.25)
-
