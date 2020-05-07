@@ -15,6 +15,7 @@ from matplotlib.lines import Line2D
 import matplotlib.colors as mcolors
 import matplotlib.colorbar as colorbar
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from matplotlib.dates import MO, TU, WE, TH, FR, SA, SU
 
 import consts
 
@@ -712,29 +713,29 @@ def stackplot(savepath, counts):
 
     fig, nax = plt.subplots(figsize=(10, 6))
     counts = counts.astype(float)
+    counts = counts[counts.columns[counts.ix[counts.last_valid_index()].argsort()]]
     colors = [consts.colors[t] for t in counts.columns]
 
     nax.stackplot(
         counts.index,
         *counts.values.T,
-        baseline='zero',
+        baseline='sym',
         labels=counts.columns,
         colors=colors
     )
 
-    nax.set_ylim(10**5, 10**7)
-    nax.set_yscale('log')
     nax.set_ylabel(f'Volume')
     nax.set_xlabel("")
     nax.set_xlim(counts.index[0], counts.index[-1])
 
     nax.xaxis.set_major_locator(mdates.MonthLocator())
     nax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-    nax.xaxis.set_minor_locator(mdates.DayLocator())
+    nax.xaxis.set_minor_locator(mdates.WeekdayLocator(byweekday=MO))
 
     handles, labels = nax.get_legend_handles_labels()
     nax.legend(handles[::-1], labels[::-1], frameon=False, loc='upper left')
-    sns.despine()
+    sns.despine(left=True)
+    nax.get_yaxis().set_visible(False)
 
     plt.tight_layout()
     plt.savefig(f'{savepath}.pdf', bbox_inches='tight', pad_inches=.25)
