@@ -306,7 +306,7 @@ def stack(savepath, survey_path, n1_path, n2_path):
         n1_path (pathlib.Path): path to 1grams timeseries
         n2_path (pathlib.Path): path to 2grams timeseries
     """
-    ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='D', agg='sum', spam=True)
+    ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='D', agg='sum', spam=False)
 
     for n in [n1, n2]:
         topics = ratings.loc[n.columns].dropna(how='all')

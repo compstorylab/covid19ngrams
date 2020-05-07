@@ -710,7 +710,7 @@ def stackplot(savepath, counts):
         'font.family': 'Arial',
     })
 
-    def stream(ax, x, y, labels, colors):
+    def stream(ax, x, y, labels, colors, labelx=False):
 
         if len(labels) == 1:
             ax.stackplot(
@@ -720,9 +720,9 @@ def stackplot(savepath, counts):
                 labels=labels,
                 colors=colors
             )
-            ax.set_title(labels[0], y=.5)
-            ax.set_ylim(0, 2.5*10 ** 6)
-            ax.ticklabel_format(axis='y', style='sci', useMathText=True, scilimits=(0, 3))
+            ax.set_ylim(0, .45)
+            ax.set_yticks(np.arange(0, .5, step=.2))
+
         else:
             ax.stackplot(
                 x,
@@ -731,24 +731,24 @@ def stackplot(savepath, counts):
                 labels=labels,
                 colors=colors
             )
-            ax.set_ylim(-4 * 10 ** 6, 4 * 10 ** 6)
+            ax.set_ylim(-y.max()*2, y.max()*2)
             ax.get_yaxis().set_visible(False)
 
-        ax.set_ylabel(f'Volume')
         ax.set_xlabel("")
         ax.set_xlim(counts.index[0], counts.index[-1])
-
         ax.xaxis.set_major_locator(mdates.MonthLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
         ax.xaxis.set_minor_locator(mdates.WeekdayLocator(byweekday=MO))
 
+        if not labelx:
+            ax.set_xticklabels([])
 
     counts = counts.astype(float)
     counts = counts[counts.columns[counts.ix[counts.last_valid_index()].argsort()]]
     colors = [consts.colors[t] for t in counts.columns]
 
-    fig = plt.figure(figsize=(12, 14))
-    cols, rows = 4, 4
+    fig = plt.figure(figsize=(5, 10))
+    cols, rows = 1, counts.shape[1]+1
     gs = fig.add_gridspec(ncols=cols, nrows=rows)
     nax = fig.add_subplot(gs[:1, :])
     stream(
@@ -756,42 +756,41 @@ def stackplot(savepath, counts):
         x=counts.index,
         y=counts.values.T,
         labels=counts.columns,
-        colors=colors
+        colors=colors,
+        labelx=False
     )
     nax.annotate(
-        consts.tags[0], xy=(0, .8),
+        consts.tags[0], xy=(-.15, 1),
         color='k', weight='bold',
         xycoords="axes fraction",
         fontsize=16
     )
 
-    topic_list = np.split(counts.columns[::-1], 2)
-    tag_list = np.array_split(consts.tags[1:counts.shape[1]+1], 2)
-    for r, (topics, tags) in enumerate(zip(topic_list, tag_list)):
-        for c, (t, tag) in enumerate(zip(topics, tags)):
-            ax = fig.add_subplot(gs[r+1, c])
-            stream(
-                ax=ax,
-                x=counts.index,
-                y=counts[t],
-                labels=[t],
-                colors=[consts.colors[t]]
-            )
-            if c != 0:
-                ax.get_yaxis().set_visible(False)
+    counts = counts.divide(counts.sum(axis=1), axis=0)
+    for i, (t, tag) in enumerate(zip(counts.columns[::-1], consts.tags[1:counts.shape[1]+1])):
+        ax = fig.add_subplot(gs[i+1, :])
+        stream(
+            ax=ax,
+            x=counts.index,
+            y=counts[t],
+            labels=[t],
+            colors=[consts.colors[t]],
+            labelx=True if i == rows-2 else False
+        )
 
-            ax.annotate(
-                tag, xy=(-.1, 1.1),
-                color='k', weight='bold',
-                xycoords="axes fraction",
-                fontsize=16
-            )
+        ax.annotate(
+            tag, xy=(-.15, 1),
+            color='k', weight='bold',
+            xycoords="axes fraction",
+            fontsize=16
+        )
+        ax.set_title(t, y=.6)
 
     sns.despine(left=True)
     nax.get_xaxis().set_visible(False)
     nax.spines['bottom'].set_visible(False)
 
-    plt.tight_layout()
+    plt.subplots_adjust(top=0.97, right=0.97, hspace=.1)
     plt.savefig(f'{savepath}.pdf', bbox_inches='tight', pad_inches=.25)
 
 
