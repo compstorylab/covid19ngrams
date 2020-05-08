@@ -2,6 +2,7 @@
 import sys
 import time
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 import cli
 import vis
@@ -84,6 +85,16 @@ def parse_args(args):
 
 
 def main(args=None):
+    plt.rcParams.update({
+        'font.size': 10,
+        'axes.titlesize': 16,
+        'axes.labelsize': 14,
+        'xtick.labelsize': 12,
+        'ytick.labelsize': 12,
+        'legend.fontsize': 12,
+        'font.family': 'serif',
+    })
+
     timeit = time.time()
 
     if args is None:

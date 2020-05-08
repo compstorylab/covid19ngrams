@@ -233,7 +233,10 @@ def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum', spam=Fal
     if not spam:
         ratings.drop('Spam', axis=1, inplace=True)
 
-    ratings = ratings.div(ratings.sum(axis=1), axis=0)
+    #ratings = ratings.div(ratings.sum(axis=1), axis=0)
+
+    # (10) is the max number of votes for each ngram on AMT
+    ratings = ratings.div(10, axis=0)
 
     n1 = pd.read_csv(
         n1_path,
@@ -260,6 +263,25 @@ def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum', spam=Fal
     return ratings, n1, n2
 
 
+def compute_vol(ratings, ngrams):
+    """ Compute relative volume of each topic
+    Args:
+        ratings (pd.DataFrame): a dataframe of topic ratings for each ngram
+        ngrams: a dataframe of ngrams and their daily count, rank, freq
+        n2_path (pathlib.Path): path to 2grams timeseries
+
+    Returns: (pd.DataFrame) a dataframe relative volume of each topic
+    """
+    topics = ratings.loc[ngrams.columns].dropna(how='all')
+    counts = ngrams[topics.index]
+
+    df = pd.DataFrame(index=ngrams.index, columns=ratings.columns)
+    for day, row in df.iterrows():
+        df.loc[day] = topics.multiply(counts.loc[day].T, axis='index').sum()
+
+    return df
+
+
 def rank(savepath, survey_path, n1_path, n2_path):
     """Plot a rank timeseries for each topic
 
@@ -272,13 +294,7 @@ def rank(savepath, survey_path, n1_path, n2_path):
     ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum')
 
     for n in [n1, n2]:
-        topics = ratings.loc[n.columns].dropna(how='all')
-        counts = n[topics.index]
-
-        ranks = pd.DataFrame(index=n.index, columns=ratings.columns)
-        for day, row in ranks.iterrows():
-            ranks.loc[day] = topics.multiply(counts.loc[day].T, axis='index').sum()
-
+        ranks = compute_vol(ratings, n)
         ranks.index = ranks.index.strftime('%d\n%b')
         last = ranks.index[-1]
         ranks = ranks.T.reset_index()
@@ -306,16 +322,10 @@ def stack(savepath, survey_path, n1_path, n2_path):
         n1_path (pathlib.Path): path to 1grams timeseries
         n2_path (pathlib.Path): path to 2grams timeseries
     """
-    ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='D', agg='sum', spam=False)
+    ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='D', agg='sum')
 
     for n in [n1, n2]:
-        topics = ratings.loc[n.columns].dropna(how='all')
-        ngrams = n[topics.index]
-
-        counts = pd.DataFrame(index=n.index, columns=ratings.columns)
-        for day, row in counts.iterrows():
-            counts.loc[day] = topics.multiply(ngrams.loc[day].T, axis='index').sum()
-
+        counts = compute_vol(ratings, n)
         vis.stackplot(
             f'{savepath}/topic_stackplot_{n.index.name}',
             counts
@@ -335,13 +345,7 @@ def violin(savepath, survey_path, n1_path, n2_path):
     ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='D', agg='sum')
 
     for n in [n1, n2]:
-        topics = ratings.loc[n.columns].dropna(how='all')
-        ngrams = n[topics.index]
-
-        counts = pd.DataFrame(index=n.index, columns=ratings.columns)
-        for day, row in counts.iterrows():
-            counts.loc[day] = topics.multiply(ngrams.loc[day].T, axis='index').sum()
-
+        counts = compute_vol(ratings, n)
         vis.violinplot(
             f'{savepath}/topic_violinplot_{n.index.name}',
             counts
