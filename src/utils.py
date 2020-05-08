@@ -6,6 +6,7 @@ import numpy as np
 from query import Query
 from pathlib import Path
 import vis
+import consts
 
 
 def query_lang_array(
@@ -181,13 +182,7 @@ def format_survey(save_path, survey_path):
         survey_path (pathlib.Path): path to amt survey data
     """
     save_path.mkdir(parents=True, exist_ok=True)
-
-    topics = [
-        'Pandemic', 'Health', 'Economics',
-        'Politics', 'Religion', 'Education',
-        'Entertainment', 'Spam'
-    ]
-    ts = [f'Answer.{t}.{i+1}' for i, t in enumerate(topics)]
+    ts = [f'Answer.{t}.{i+1}' for i, t in enumerate(consts.topics)]
 
     ratings = None
     for file in survey_path.glob('*.csv'):
@@ -203,7 +198,7 @@ def format_survey(save_path, survey_path):
                 df.groupby(['Input.text1'])[ts].sum()
             )
 
-    ratings.columns = topics
+    ratings.columns = consts.topics
     ratings.index.name = 'ngram'
     ratings.to_csv(f'{save_path}/survey.tsv', sep='\t')
 
