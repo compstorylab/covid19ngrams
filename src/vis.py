@@ -15,8 +15,9 @@ from matplotlib.lines import Line2D
 import matplotlib.colors as mcolors
 import matplotlib.colorbar as colorbar
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from matplotlib.dates import MO, TU, WE, TH, FR, SA, SU
 
-import utils
+import consts
 
 import warnings
 warnings.simplefilter("ignore")
@@ -98,15 +99,6 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='freq'):
         metric (string): plot either rate of usage (freq) or rank of work (rank)
     """
 
-    plt.rcParams.update({
-        'font.size': 10,
-        'axes.titlesize': 16,
-        'axes.labelsize': 14,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
-        'legend.fontsize': 12,
-        'font.family': 'Arial',
-    })
     rows, cols = 16, 3
     fig = plt.figure(figsize=(12, 14))
     gs = fig.add_gridspec(ncols=cols, nrows=rows)
@@ -332,15 +324,6 @@ def adj(savepath, survey_path):
         savepath (pathlib.Path): path to save plot
         survey_path (pathlib.Path): path to survey data
     """
-    plt.rcParams.update({
-        'font.size': 10,
-        'axes.titlesize': 16,
-        'axes.labelsize': 14,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
-        'legend.fontsize': 12,
-        'font.family': 'Arial',
-    })
 
     bins = True
     normalized = True
@@ -528,14 +511,6 @@ def heatmaps(savepath, survey_path):
         savepath (pathlib.Path): path to save plot
         survey_path (pathlib.Path): path to survey data
     """
-    plt.rcParams.update({
-        'font.size': 10,
-        'axes.titlesize': 16,
-        'axes.labelsize': 14,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
-        'legend.fontsize': 12,
-    })
     vmin = 0
     vmax = 1
     n = 25
@@ -546,7 +521,10 @@ def heatmaps(savepath, survey_path):
         index_col=0,
         sep='\t',
     )
-    ratings = ratings.div(ratings.sum(axis=1), axis=0)
+
+    #ratings = ratings.div(ratings.sum(axis=1), axis=0)
+    # (10) is the max number of votes for each ngram on AMT
+    ratings = ratings.div(10, axis=0)
 
     n1 = ratings[ratings.index.str.split(' ').str.len() == 1]
     n1.index.name = '1grams'
@@ -558,22 +536,29 @@ def heatmaps(savepath, survey_path):
         fig, axes = plt.subplots(figsize=(16, 16), nrows=2, ncols=4)
         axes = axes.flatten()
 
-        bounds = np.arange(0, 1.1, .1)
+        bounds = np.arange(0, 1.15, .15)
         cmap = plt.cm.get_cmap('magma_r')
         cmaplist = [cmap(i) for i in range(cmap.N)]
         cmaplist[0] = (1, 1, 1, 1.0)  # force the first color entry to be white
-        cmap = mcolors.LinearSegmentedColormap.from_list(None, cmaplist, cmap.N)
+        cmap = mcolors.LinearSegmentedColormap.from_list(None, cmaplist, len(bounds))
         norm = mcolors.BoundaryNorm(bounds, cmap.N)
 
-        for topic, ax in zip(ngrams.columns, axes):
+        for topic, ax, tag in zip(ngrams.columns, axes, consts.tags):
             ax.set_title(topic)
             mat = ngrams.sort_values(topic, ascending=False).iloc[:n]
+
+            ax.annotate(
+                tag, xy=(-.1, 1.01),
+                color='k', weight='bold',
+                xycoords="axes fraction",
+                fontsize=16
+            )
 
             cbarax = inset_axes(
                 axes[2],
                 width="500%",
                 height="2%",
-                bbox_to_anchor=(.75, .1, 1, 1),
+                bbox_to_anchor=(1, .1, 1, 1),
                 bbox_transform=axes[2].transAxes,
                 borderpad=.25,
             )
@@ -613,7 +598,7 @@ def heatmaps(savepath, survey_path):
 
             cbarax.tick_params(labelsize=14)
             cbarax.xaxis.set_ticks_position('top')
-            cbarax.yaxis.set_label_position('left')
+            cbarax.xaxis.set_label_position('top')
             cbarax.set_title('Fraction of votes')
 
             plt.tight_layout()
@@ -628,15 +613,6 @@ def plot_rank(savepath, ranks):
         savepath (pathlib.Path): path to save plot
         ranks (pd.DataFrame): pandas dataframe of topics and their ranks
     """
-    plt.rcParams.update({
-        'font.size': 10,
-        'axes.titlesize': 16,
-        'axes.labelsize': 14,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
-        'legend.fontsize': 12,
-        'font.family': 'Arial',
-    })
 
     rows, cols = 6, 6
     n = ranks.shape[0]
@@ -645,21 +621,11 @@ def plot_rank(savepath, ranks):
     gs = fig.add_gridspec(ncols=cols, nrows=rows)
 
     ax = fig.add_subplot(gs[:, :])
-    colors = {
-        'Pandemic': 'C0',
-        'Health': 'C1',
-        'Economics': 'C2',
-        'Politics': 'C3',
-        'Religion': 'C4',
-        'Education': 'C5',
-        'Entertainment': 'C6'
-    }
-    colors = [colors[t] for t in ranks['index']]
+    colors = [consts.colors[t] for t in ranks['index']]
 
     ax = pd.plotting.parallel_coordinates(
         ranks, ax=ax, class_column='index',
         color=colors, lw=5, axvlines=False,
-        alpha=.75
     )
     #ax.tick_params(axis='x', rotation=45)
 
@@ -709,48 +675,86 @@ def stackplot(savepath, counts):
         savepath (pathlib.Path): path to save plot
         ranks (pd.DataFrame): pandas dataframe of topics and their ranks
     """
-    plt.rcParams.update({
-        'font.size': 10,
-        'axes.titlesize': 16,
-        'axes.labelsize': 14,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
-        'legend.fontsize': 12,
-        'font.family': 'Arial',
-    })
 
-    fig, nax = plt.subplots(figsize=(10, 6))
+    def stream(ax, x, y, labels, colors, labelx=False):
+
+        if len(labels) == 1:
+            ax.stackplot(
+                x,
+                y,
+                baseline='zero',
+                labels=labels,
+                colors=colors
+            )
+            ax.set_ylim(0, .45)
+            ax.set_yticks(np.arange(0, .5, step=.2))
+
+        else:
+            ax.stackplot(
+                x,
+                y,
+                baseline='sym',
+                labels=labels,
+                colors=colors
+            )
+            ax.set_ylim(-y.max()*2, y.max()*2)
+            ax.get_yaxis().set_visible(False)
+
+        ax.set_xlabel("")
+        ax.set_xlim(counts.index[0], counts.index[-1])
+        ax.xaxis.set_major_locator(mdates.MonthLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+        ax.xaxis.set_minor_locator(mdates.WeekdayLocator(byweekday=MO))
+
+        if not labelx:
+            ax.set_xticklabels([])
+
+    counts = counts.astype(float)
+    counts = counts[counts.columns[counts.ix[counts.last_valid_index()].argsort()]]
+    colors = [consts.colors[t] for t in counts.columns]
+
+    fig = plt.figure(figsize=(5, 10))
+    cols, rows = 1, counts.shape[1]+1
+    gs = fig.add_gridspec(ncols=cols, nrows=rows)
+    nax = fig.add_subplot(gs[:1, :])
+    stream(
+        ax=nax,
+        x=counts.index,
+        y=counts.values.T,
+        labels=counts.columns,
+        colors=colors,
+        labelx=False
+    )
+    nax.annotate(
+        consts.tags[0], xy=(-.15, 1),
+        color='k', weight='bold',
+        xycoords="axes fraction",
+        fontsize=16
+    )
 
     counts = counts.divide(counts.sum(axis=1), axis=0)
-    nax = counts.plot.area(stacked=True, ax=nax, alpha=.75)
-
-    nax.set_ylabel(f'Relative rate of usage')
-    nax.set_xlabel("")
-    nax.set_ylim(0, 1)
-    nax.set_xlim(counts.index[0], counts.index[-1])
-    nax.grid(True, which="both", axis='both', zorder=0, alpha=.3, linestyle='-')
-
-    nax.xaxis.set_major_locator(mdates.MonthLocator())
-    nax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-    nax.xaxis.set_minor_locator(mdates.DayLocator())
-    plt.setp(nax.xaxis.get_majorticklabels(), ha='center', rotation=45)
-
-    nax.legend_.remove()
-    ss = 0
-    lines, labels = nax.get_legend_handles_labels()
-    for i, label in enumerate(labels):
-        d = counts.index[0]
-        ss += counts.loc[d, label]
-        nax.annotate(
-            label,
-            xy=(d, ss - .065),
-            xytext=(6, 0), color='k',
-            xycoords='data',
-            textcoords="offset points",
-            size=14, va="center"
+    for i, (t, tag) in enumerate(zip(counts.columns[::-1], consts.tags[1:counts.shape[1]+1])):
+        ax = fig.add_subplot(gs[i+1, :])
+        stream(
+            ax=ax,
+            x=counts.index,
+            y=counts[t],
+            labels=[t],
+            colors=[consts.colors[t]],
+            labelx=True if i == rows-2 else False
         )
 
-    plt.tight_layout()
+        ax.annotate(
+            tag, xy=(-.15, .9),
+            color='k', weight='bold',
+            xycoords="axes fraction",
+            fontsize=16
+        )
+        ax.set_title(t, y=.6)
+
+    sns.despine(left=True)
+
+    plt.subplots_adjust(top=0.97, right=0.97, hspace=.1)
     plt.savefig(f'{savepath}.pdf', bbox_inches='tight', pad_inches=.25)
 
 
@@ -761,15 +765,6 @@ def violinplot(savepath, counts):
         savepath (pathlib.Path): path to save plot
         ranks (pd.DataFrame): pandas dataframe of topics and their ranks
     """
-    plt.rcParams.update({
-        'font.size': 10,
-        'axes.titlesize': 16,
-        'axes.labelsize': 14,
-        'xtick.labelsize': 12,
-        'ytick.labelsize': 12,
-        'legend.fontsize': 12,
-        'font.family': 'Arial',
-    })
 
     fig, ax = plt.subplots(figsize=(10, 6))
     topics = counts.columns
@@ -782,8 +777,8 @@ def violinplot(savepath, counts):
         y="vol",
         orient='v',
         marker='h',
-        alpha=.75,
         edgecolors='face',
+        palette=consts.colors
     )
 
     ax.set_ylim(counts.vol.min()-10**5, counts.vol.max()+10**5)
@@ -797,4 +792,3 @@ def violinplot(savepath, counts):
     ax.spines['bottom'].set_visible(False)
 
     plt.savefig(f'{savepath}.pdf', bbox_inches='tight', pad_inches=.25)
-

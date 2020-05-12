@@ -6,6 +6,7 @@ import numpy as np
 from query import Query
 from pathlib import Path
 import vis
+import consts
 
 
 def query_lang_array(
@@ -40,7 +41,7 @@ def query_lang_array(
         }
 
     if Path(f'{save_path}/count.tsv').exists():
-        t = datetime.date.today() - datetime.timedelta(7)
+        t = datetime.date.today() - datetime.timedelta(14)
         start_date = datetime.datetime(t.year, t.month, t.day)
 
     q = Query(database, lang)
@@ -103,6 +104,33 @@ def update_timeseries(save_path, languages_path, ngrams_path, database):
         print('-' * 50)
 
 
+def update_mtts(save_path, ngrams_path, database):
+    """Query database to update timeseries for MT survey
+
+    Args:
+        save_path (pathlib.Path): path to save generated timeseries
+        ngrams_path (pathlib.Path): path to parse requested ngrams
+        database (string): database codename
+    """
+    ngrams = pd.read_csv(
+        ngrams_path,
+        na_filter=False,
+        sep='\t',
+        encoding='utf8',
+        header=None,
+        quotechar=None,
+        quoting=3
+    ).iloc[:, 0]
+
+    out = Path(f'{save_path}')
+    out.mkdir(parents=True, exist_ok=True)
+
+    print(f"Retrieving: {len(ngrams)} {database} ...")
+    query_lang_array(out, 'en', database, ngrams, rt=False)
+    query_lang_array(out, 'en', database, ngrams)
+    print('-' * 50)
+
+
 def filter_ngrams(save_path, ngrams_path):
     """Filter out non-latin characters for MT
 
@@ -111,8 +139,9 @@ def filter_ngrams(save_path, ngrams_path):
         ngrams_path (pathlib.Path): path to parse requested ngrams
     """
     save_path.mkdir(parents=True, exist_ok=True)
-    filter1 = re.compile('[A-Za-z0-9]+')
-    filter2 = re.compile('[0-9]+')
+    alphanum = re.compile('[A-Za-z0-9]+')
+    nums = re.compile('[0-9]+')
+    links = re.compile('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
 
     for file in ngrams_path.glob(f'en_*.tsv'):
         ngrams = pd.read_csv(
@@ -130,10 +159,15 @@ def filter_ngrams(save_path, ngrams_path):
         for word in ngrams:
             if '@' in word or '#' in word:
                 continue
-            ws = word.split()
-            if not all([bool(filter1.findall(w)) for w in ws]):
+            ws = word.split(' ')
+
+            if not all([bool(alphanum.findall(w)) for w in ws]):
                 continue
-            if any([bool(filter2.findall(w)) for w in ws]):
+
+            if any([bool(nums.match(w)) for w in ws]):
+                continue
+
+            if any([bool(links.findall(w)) for w in ws]):
                 continue
 
             ngrams_to_keep.append(word)
@@ -166,7 +200,7 @@ def amt(save_path, ngrams_path):
         ).iloc[:1000, 0].values
 
         print(ngrams.shape)
-        partitions = np.array_split(ngrams, 10)
+        partitions = np.split(ngrams, range(100, len(ngrams), 100))
         for i, p in enumerate(partitions):
             print(p.shape)
             df = pd.DataFrame(p, columns=['text1'])
@@ -181,13 +215,7 @@ def format_survey(save_path, survey_path):
         survey_path (pathlib.Path): path to amt survey data
     """
     save_path.mkdir(parents=True, exist_ok=True)
-
-    topics = [
-        'Pandemic', 'Health', 'Economics',
-        'Politics', 'Religion', 'Education',
-        'Entertainment', 'Spam'
-    ]
-    ts = [f'Answer.{t}.{i+1}' for i, t in enumerate(topics)]
+    ts = [f'Answer.{t}.{i+1}' for i, t in enumerate(consts.topics)]
 
     ratings = None
     for file in survey_path.glob('*.csv'):
@@ -203,12 +231,12 @@ def format_survey(save_path, survey_path):
                 df.groupby(['Input.text1'])[ts].sum()
             )
 
-    ratings.columns = topics
+    ratings.columns = consts.topics
     ratings.index.name = 'ngram'
     ratings.to_csv(f'{save_path}/survey.tsv', sep='\t')
 
 
-def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum'):
+def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum', spam=False):
     """Plot a rank timeseries for each topic
 
     Args:
@@ -218,6 +246,7 @@ def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum'):
         n2_path (pathlib.Path): path to 2grams timeseries
         resolution (string): desired data resolution
         agg (string): aggregation function to use
+        spam (bool): a toggle for including the spam column
 
     Returns: (3 x pd.DataFrame)
         Dataframes for ratings and ngram timeseries
@@ -229,8 +258,13 @@ def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum'):
         index_col=0,
         sep='\t',
     )
-    ratings.drop('Spam', axis=1, inplace=True)
-    ratings = ratings.div(ratings.sum(axis=1), axis=0)
+    if not spam:
+        ratings.drop('Spam', axis=1, inplace=True)
+
+    #ratings = ratings.div(ratings.sum(axis=1), axis=0)
+
+    # (10) is the max number of votes for each ngram on AMT
+    ratings = ratings.div(10, axis=0)
 
     n1 = pd.read_csv(
         n1_path,
@@ -257,6 +291,25 @@ def load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum'):
     return ratings, n1, n2
 
 
+def compute_vol(ratings, ngrams):
+    """ Compute relative volume of each topic
+    Args:
+        ratings (pd.DataFrame): a dataframe of topic ratings for each ngram
+        ngrams: a dataframe of ngrams and their daily count, rank, freq
+        n2_path (pathlib.Path): path to 2grams timeseries
+
+    Returns: (pd.DataFrame) a dataframe relative volume of each topic
+    """
+    topics = ratings.loc[ngrams.columns].dropna(how='all')
+    counts = ngrams[topics.index]
+
+    df = pd.DataFrame(index=ngrams.index, columns=ratings.columns)
+    for day, row in df.iterrows():
+        df.loc[day] = topics.multiply(counts.loc[day].T, axis='index').sum()
+
+    return df
+
+
 def rank(savepath, survey_path, n1_path, n2_path):
     """Plot a rank timeseries for each topic
 
@@ -269,13 +322,7 @@ def rank(savepath, survey_path, n1_path, n2_path):
     ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum')
 
     for n in [n1, n2]:
-        topics = ratings.loc[n.columns].dropna(how='all')
-        counts = n[topics.index]
-
-        ranks = pd.DataFrame(index=n.index, columns=ratings.columns)
-        for day, row in ranks.iterrows():
-            ranks.loc[day] = topics.multiply(counts.loc[day].T, axis='index').sum()
-
+        ranks = compute_vol(ratings, n)
         ranks.index = ranks.index.strftime('%d\n%b')
         last = ranks.index[-1]
         ranks = ranks.T.reset_index()
@@ -306,13 +353,7 @@ def stack(savepath, survey_path, n1_path, n2_path):
     ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='D', agg='sum')
 
     for n in [n1, n2]:
-        topics = ratings.loc[n.columns].dropna(how='all')
-        ngrams = n[topics.index]
-
-        counts = pd.DataFrame(index=n.index, columns=ratings.columns)
-        for day, row in counts.iterrows():
-            counts.loc[day] = topics.multiply(ngrams.loc[day].T, axis='index').sum()
-
+        counts = compute_vol(ratings, n)
         vis.stackplot(
             f'{savepath}/topic_stackplot_{n.index.name}',
             counts
@@ -332,13 +373,7 @@ def violin(savepath, survey_path, n1_path, n2_path):
     ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='D', agg='sum')
 
     for n in [n1, n2]:
-        topics = ratings.loc[n.columns].dropna(how='all')
-        ngrams = n[topics.index]
-
-        counts = pd.DataFrame(index=n.index, columns=ratings.columns)
-        for day, row in counts.iterrows():
-            counts.loc[day] = topics.multiply(ngrams.loc[day].T, axis='index').sum()
-
+        counts = compute_vol(ratings, n)
         vis.violinplot(
             f'{savepath}/topic_violinplot_{n.index.name}',
             counts
