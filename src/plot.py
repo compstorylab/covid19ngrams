@@ -59,13 +59,13 @@ def parse_args(args):
 
     parser.add_argument(
         '--ts_1grams',
-        default=Path('.').resolve().parent/'data'/'timeseries'/'april_top_1grams',
+        default=Path('.').resolve().parent/'data'/'mt'/'timeseries'/'april_1grams',
         help='path to 1grams timeseries'
     )
 
     parser.add_argument(
         '--ts_2grams',
-        default=Path('.').resolve().parent/'data'/'timeseries'/'april_top_2grams',
+        default=Path('.').resolve().parent/'data'/'mt'/'timeseries'/'april_2grams',
         help='path to 2grams timeseries'
     )
 
@@ -122,15 +122,15 @@ def main(args=None):
         utils.rank(
             savepath=Path(args.outdir),
             survey_path=Path(args.survey),
-            n1_path=Path(args.ts_1grams)/'English'/'count.tsv',
-            n2_path=Path(args.ts_2grams)/'English'/'count.tsv',
+            n1_path=Path(args.ts_1grams)/'count.tsv',
+            n2_path=Path(args.ts_2grams)/'count.tsv',
         )
     elif args.dtype == 'stack':
         utils.stack(
             savepath=Path(args.outdir),
             survey_path=Path(args.survey),
-            n1_path=Path(args.ts_1grams)/'English'/'count.tsv',
-            n2_path=Path(args.ts_2grams)/'English'/'count.tsv',
+            n1_path=Path(args.ts_1grams)/'count.tsv',
+            n2_path=Path(args.ts_2grams)/'count.tsv',
         )
     elif args.dtype == 'heatmaps':
         vis.heatmaps(
@@ -141,8 +141,8 @@ def main(args=None):
         utils.violin(
             savepath=Path(args.outdir),
             survey_path=Path(args.survey),
-            n1_path=Path(args.ts_1grams)/'English'/'count.tsv',
-            n2_path=Path(args.ts_2grams)/'English'/'count.tsv',
+            n1_path=Path(args.ts_1grams)/'count.tsv',
+            n2_path=Path(args.ts_2grams)/'count.tsv',
         )
     else:
         print('Error: unknown action!')

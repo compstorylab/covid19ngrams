@@ -41,7 +41,7 @@ def query_lang_array(
         }
 
     if Path(f'{save_path}/count.tsv').exists():
-        t = datetime.date.today() - datetime.timedelta(7)
+        t = datetime.date.today() - datetime.timedelta(14)
         start_date = datetime.datetime(t.year, t.month, t.day)
 
     q = Query(database, lang)
@@ -104,6 +104,33 @@ def update_timeseries(save_path, languages_path, ngrams_path, database):
         print('-' * 50)
 
 
+def update_mtts(save_path, ngrams_path, database):
+    """Query database to update timeseries for MT survey
+
+    Args:
+        save_path (pathlib.Path): path to save generated timeseries
+        ngrams_path (pathlib.Path): path to parse requested ngrams
+        database (string): database codename
+    """
+    ngrams = pd.read_csv(
+        ngrams_path,
+        na_filter=False,
+        sep='\t',
+        encoding='utf8',
+        header=None,
+        quotechar=None,
+        quoting=3
+    ).iloc[:, 0]
+
+    out = Path(f'{save_path}')
+    out.mkdir(parents=True, exist_ok=True)
+
+    print(f"Retrieving: {len(ngrams)} {database} ...")
+    query_lang_array(out, 'en', database, ngrams, rt=False)
+    query_lang_array(out, 'en', database, ngrams)
+    print('-' * 50)
+
+
 def filter_ngrams(save_path, ngrams_path):
     """Filter out non-latin characters for MT
 
@@ -112,8 +139,9 @@ def filter_ngrams(save_path, ngrams_path):
         ngrams_path (pathlib.Path): path to parse requested ngrams
     """
     save_path.mkdir(parents=True, exist_ok=True)
-    filter1 = re.compile('[A-Za-z0-9]+')
-    filter2 = re.compile('[0-9]+')
+    alphanum = re.compile('[A-Za-z0-9]+')
+    nums = re.compile('[0-9]+')
+    links = re.compile('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
 
     for file in ngrams_path.glob(f'en_*.tsv'):
         ngrams = pd.read_csv(
@@ -131,10 +159,15 @@ def filter_ngrams(save_path, ngrams_path):
         for word in ngrams:
             if '@' in word or '#' in word:
                 continue
-            ws = word.split()
-            if not all([bool(filter1.findall(w)) for w in ws]):
+            ws = word.split(' ')
+
+            if not all([bool(alphanum.findall(w)) for w in ws]):
                 continue
-            if any([bool(filter2.findall(w)) for w in ws]):
+
+            if any([bool(nums.match(w)) for w in ws]):
+                continue
+
+            if any([bool(links.findall(w)) for w in ws]):
                 continue
 
             ngrams_to_keep.append(word)
@@ -167,7 +200,7 @@ def amt(save_path, ngrams_path):
         ).iloc[:1000, 0].values
 
         print(ngrams.shape)
-        partitions = np.array_split(ngrams, 10)
+        partitions = np.split(ngrams, range(100, len(ngrams), 100))
         for i, p in enumerate(partitions):
             print(p.shape)
             df = pd.DataFrame(p, columns=['text1'])
