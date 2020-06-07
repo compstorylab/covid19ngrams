@@ -3,6 +3,7 @@ import sys
 import time
 from pathlib import Path
 
+import vis
 import cli
 import utils
 
@@ -17,6 +18,11 @@ def parse_args(args):
     subparsers.add_parser(
         'mt',
         help='update timeseries for AMT survey'
+    )
+
+    subparsers.add_parser(
+        'figures',
+        help='update figures'
     )
 
     parser.add_argument(
@@ -63,6 +69,41 @@ def main(args=None):
                 save_path=args.mt/'timeseries'/f.stem,
                 ngrams_path=f,
                 database=f.stem.split('_')[-1]
+            )
+    elif args.dtype == 'figures':
+        contagiograms = {
+            'virus_12': [
+                ('virus', 'en'), ('virus', 'es'), ('vírus', 'pt'), ('فيروس', 'ar'),
+                ('바이러스', 'ko'), ('virus', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
+                ('Virus', 'de'), ('virus', 'it'), ('вирус', 'ru'), ('virus', 'tl'),
+            ],
+            'virus_24': [
+                ('virus', 'hi'), ('ویروس', 'fa'), ('وائرس', 'ur'), ('wirus', 'pl'),
+                ('virus', 'ca'), ('virus', 'nl'), ('virus', 'ta'), ('ιός', 'el'),
+                ('virus', 'sv'), ('вирус', 'sr'), ('virus', 'fi'), ('вірус', 'uk'),
+            ],
+            'samples_1grams_12': [
+                ('coronavirus', 'en'), ('cuarentena', 'es'), ('corona', 'pt'), ('كورونا', 'ar'),
+                ('바이러스', 'ko'), ('quarantaine', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
+                ('Quarantäne', 'de'), ('quarantena', 'it'), ('карантин', 'ru'), ('virus', 'tl'),
+            ],
+            'samples_1grams_24': [
+                ('virus', 'hi'), ('قرنطینه', 'fa'), ('مرضی', 'ur'), ('testów', 'pl'),
+                ('confinament', 'ca'), ('virus', 'nl'), ('ரஜ', 'ta'), ('σύνορα', 'el'),
+                ('Italien', 'sv'), ('mere', 'sr'), ('manaa', 'fi'), ('BARK', 'uk'),
+            ],
+            'samples_2grams': [
+                ('social distancing', 'en'), ('coronavirus cases', 'en'), ('tested positive', 'en'), ('a pandemic', 'en'),
+                ('wash your', 'en'), ('from home', 'en'), ('confirmed cases', 'en'), ('hand sanitizer', 'en'),
+                ('laid off', 'en'), ('panic buying', 'en'), ('stay home', 'en'), ('toilet paper', 'en'),
+            ],
+        }
+
+        for k, words in contagiograms.items():
+            vis.contagiograms(
+                savepath=Path('.').resolve().parent/'plots'/f'contagiograms_{k}',
+                words=words,
+                lang_hashtbl=Path(args.langs),
             )
     else:
         for f in args.targets.glob('*grams'):

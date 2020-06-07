@@ -41,7 +41,7 @@ def query_lang_array(
         }
 
     if Path(f'{save_path}/count.tsv').exists():
-        t = datetime.date.today() - datetime.timedelta(14)
+        t = datetime.date.today() - datetime.timedelta(10)
         start_date = datetime.datetime(t.year, t.month, t.day)
 
     q = Query(database, lang)

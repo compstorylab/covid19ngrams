@@ -2,6 +2,16 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
 
+import matplotlib.font_manager as fm
+fm._rebuild()
+noto = [f.name for f in fm.fontManager.ttflist if 'Noto Sans' in f.name]
+
+fonts = {
+    'Default': fm.FontProperties(family=["sans-serif"]),
+    'Korean': fm.FontProperties(family=["Noto Sans CJK KR", "Noto Sans CJK", "sans-serif"]),
+    'Tamil': fm.FontProperties(family=["Noto Sans Tamil", "sans-serif"]),
+}
+
 
 def cmap(n, base='tab10'):
     base = plt.cm.get_cmap(base)

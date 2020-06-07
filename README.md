@@ -34,9 +34,9 @@ Our main intent is for other researchers to use these time series
 to enhance whatever analyses that may be of use during the pandemic 
 as well as for retrospective investigations.
 
-![contagiograms1](plots/contagiograms1.png)\
-![contagiograms2](plots/contagiograms2.png)\
-![contagiograms22](plots/contagiograms22.png)
+![contagiograms1](plots/contagiograms_samples_1grams_12.png)\
+![contagiograms2](plots/contagiograms_samples_1grams_24.png)\
+![contagiograms22](plots/contagiograms_samples_2grams.png)
 
 ## Data Format
 We host the time series [here](data/timeseries), 
