@@ -25,48 +25,29 @@ def parse_args(args):
         help='update figures'
     )
 
-    parser.add_argument(
-        '-l', '--langs',
-        default=Path('.').resolve().parent/'data'/'languages.csv',
-        help='path to language dict'
-    )
-
-    parser.add_argument(
-        '-t', '--targets',
-        default=Path('.').resolve().parent/'data'/'rank_turbulence_divergence',
-        help='absolute Path of the requested targets'
-    )
-
-    parser.add_argument(
-        '-o', '--outdir',
-        default=Path('.').resolve().parent/'data'/'timeseries',
-        help='absolute Path to save timeseries'
-    )
-
-    parser.add_argument(
-        '-m', '--mt',
-        default=Path('.').resolve().parent/'data'/'mt',
-        help='absolute Path to AMT files'
-    )
-
     return parser.parse_args(args)
 
 
 def main(args=None):
     timeit = time.time()
+    repo = Path(sys.argv[0]).resolve().parent.parent
+    langs = repo/'data'/'languages.csv'
+    targets = repo/'data'/'rank_turbulence_divergence'
+    outdir = repo/'data'/'timeseries'
+    mt = repo/'data'/'mt'
 
     if args is None:
         args = sys.argv[1:]
 
     args = parse_args(args)
-    Path(args.outdir).mkdir(parents=True, exist_ok=True)
+    Path(outdir).mkdir(parents=True, exist_ok=True)
 
     if args.dtype == 'mt':
-        p = args.mt/'ngrams'
+        p = mt/'ngrams'
         for f in p.glob('*grams.tsv'):
             print(f.stem)
             utils.update_mtts(
-                save_path=args.mt/'timeseries'/f.stem,
+                save_path=mt/'timeseries'/f.stem,
                 ngrams_path=f,
                 database=f.stem.split('_')[-1]
             )
@@ -103,15 +84,15 @@ def main(args=None):
             vis.contagiograms(
                 savepath=Path('.').resolve().parent/'plots'/f'contagiograms_{k}',
                 words=words,
-                lang_hashtbl=Path(args.langs),
+                lang_hashtbl=Path(langs),
             )
     else:
-        for f in args.targets.glob('*grams'):
+        for f in targets.glob('*grams'):
             print(f.stem)
             utils.update_timeseries(
-                save_path=args.outdir/f.stem,
-                languages_path=args.langs,
-                ngrams_path=args.targets/f.stem,
+                save_path=outdir/f.stem,
+                languages_path=langs,
+                ngrams_path=targets/f.stem,
                 database=f.stem.split('_')[-1]
             )
 
