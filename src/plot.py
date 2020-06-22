@@ -51,36 +51,6 @@ def parse_args(args):
         help='Plot heatmaps of top ngrams by topics'
     )
 
-    parser.add_argument(
-        '-s', '--survey',
-        default=Path('.').resolve().parent/'data'/'mt'/'survey.tsv',
-        help='path to AMT survey data'
-    )
-
-    parser.add_argument(
-        '--ts_1grams',
-        default=Path('.').resolve().parent/'data'/'mt'/'timeseries'/'april_1grams',
-        help='path to 1grams timeseries'
-    )
-
-    parser.add_argument(
-        '--ts_2grams',
-        default=Path('.').resolve().parent/'data'/'mt'/'timeseries'/'april_2grams',
-        help='path to 2grams timeseries'
-    )
-
-    parser.add_argument(
-        '-l', '--langs',
-        default=Path('.').resolve().parent/'data'/'languages.csv',
-        help='path to language dict'
-    )
-
-    parser.add_argument(
-        '-o', '--outdir',
-        default=Path('.').resolve().parent/'plots',
-        help='absolute Path to save figures'
-    )
-
     return parser.parse_args(args)
 
 
@@ -96,6 +66,13 @@ def main(args=None):
     })
 
     timeit = time.time()
+    repo = Path(sys.argv[0]).resolve().parent.parent
+    langs = repo/'data'/'languages.csv'
+    mt = repo/'data'/'mt'
+    survey = mt/'survey.tsv'
+    ts_1grams = mt/'timeseries'/'april_1grams'
+    ts_2grams = mt/'timeseries'/'april_2grams'
+    outdir = repo/'plots'
 
     if args is None:
         args = sys.argv[1:]
@@ -105,44 +82,44 @@ def main(args=None):
 
     if args.dtype == 'contagiograms':
         vis.contagiograms(
-            savepath=Path(args.outdir),
-            lang_hashtbl=Path(args.langs),
+            savepath=Path(outdir),
+            lang_hashtbl=Path(langs),
         )
     elif args.dtype == 'adj':
         vis.adj(
-            savepath=Path(args.outdir),
-            survey_path=Path(args.survey)
+            savepath=Path(outdir),
+            survey_path=Path(survey)
         )
     elif args.dtype == 'network':
         vis.network(
-            savepath=Path(args.outdir),
-            survey_path=Path(args.survey)
+            savepath=Path(outdir),
+            survey_path=Path(survey)
         )
     elif args.dtype == 'rank':
         utils.rank(
-            savepath=Path(args.outdir),
-            survey_path=Path(args.survey),
-            n1_path=Path(args.ts_1grams)/'count.tsv',
-            n2_path=Path(args.ts_2grams)/'count.tsv',
+            savepath=Path(outdir),
+            survey_path=Path(survey),
+            n1_path=Path(ts_1grams)/'count.tsv',
+            n2_path=Path(ts_2grams)/'count.tsv',
         )
     elif args.dtype == 'stack':
         utils.stack(
-            savepath=Path(args.outdir),
-            survey_path=Path(args.survey),
-            n1_path=Path(args.ts_1grams)/'count.tsv',
-            n2_path=Path(args.ts_2grams)/'count.tsv',
+            savepath=Path(outdir),
+            survey_path=Path(survey),
+            n1_path=Path(ts_1grams)/'count.tsv',
+            n2_path=Path(ts_2grams)/'count.tsv',
         )
     elif args.dtype == 'heatmaps':
         vis.heatmaps(
-            savepath=Path(args.outdir),
-            survey_path=Path(args.survey)
+            savepath=Path(outdir),
+            survey_path=Path(survey)
         )
     elif args.dtype == 'violin':
         utils.violin(
-            savepath=Path(args.outdir),
-            survey_path=Path(args.survey),
-            n1_path=Path(args.ts_1grams)/'count.tsv',
-            n2_path=Path(args.ts_2grams)/'count.tsv',
+            savepath=Path(outdir),
+            survey_path=Path(survey),
+            n1_path=Path(ts_1grams)/'count.tsv',
+            n2_path=Path(ts_2grams)/'count.tsv',
         )
     else:
         print('Error: unknown action!')

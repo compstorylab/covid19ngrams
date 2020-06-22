@@ -29,47 +29,38 @@ def parse_args(args):
         help='Clean AMT files'
     )
 
-    parser.add_argument(
-        '-t', '--ngrams',
-        default=Path('.').resolve().parent/'data'/'rank_turbulence_divergence',
-        help='absolute Path of the requested ngrams'
-    )
-
-    parser.add_argument(
-        '-o', '--outdir',
-        default=Path('.').resolve().parent/'data'/'mt',
-        help='absolute Path to save filtered ngrams'
-    )
-
     return parser.parse_args(args)
 
 
 def main(args=None):
     timeit = time.time()
+    repo = Path(sys.argv[0]).resolve().parent.parent
+    ngrams = repo/'data'/'rank_turbulence_divergence'
+    outdir = repo/'data'/'mt'
 
     if args is None:
         args = sys.argv[1:]
 
     args = parse_args(args)
-    Path(args.outdir).mkdir(parents=True, exist_ok=True)
+    Path(outdir).mkdir(parents=True, exist_ok=True)
 
     if args.dtype == 'filter':
-        for f in args.ngrams.glob('*grams'):
+        for f in ngrams.glob('*grams'):
             print(f.stem)
             utils.filter_ngrams(
-                save_path=args.outdir / f.stem,
-                ngrams_path=args.ngrams / f.stem
+                save_path=outdir / f.stem,
+                ngrams_path=ngrams / f.stem
             )
     elif args.dtype == 'compile':
         utils.amt(
-            save_path=args.outdir/'amt',
-            ngrams_path=args.outdir/'ngrams'
+            save_path=outdir/'amt',
+            ngrams_path=outdir/'ngrams'
         )
 
     elif args.dtype == 'format':
         utils.format_survey(
-            save_path=args.outdir,
-            survey_path=args.outdir/'survey'
+            save_path=outdir,
+            survey_path=outdir/'survey'
         )
     else:
         print('Error: unknown action!')
