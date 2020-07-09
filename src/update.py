@@ -35,6 +35,7 @@ def main(args=None):
     targets = repo/'data'/'rank_turbulence_divergence'
     outdir = repo/'data'/'timeseries'
     mt = repo/'data'/'mt'
+    plots = repo/'plots'
 
     if args is None:
         args = sys.argv[1:]
@@ -82,7 +83,7 @@ def main(args=None):
 
         for k, words in contagiograms.items():
             vis.contagiograms(
-                savepath=Path('.').resolve().parent/'plots'/f'contagiograms_{k}',
+                savepath=plots/f'contagiograms_{k}',
                 words=words,
                 lang_hashtbl=Path(langs),
             )

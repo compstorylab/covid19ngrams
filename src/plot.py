@@ -16,9 +16,10 @@ def parse_args(args):
     subparsers = parser.add_subparsers(help='Arguments for specific action.', dest='dtype')
     subparsers.required = True
 
+
     subparsers.add_parser(
-        'contagiograms',
-        help='Plot a grid of contagiograms: rate of usage timeseries + contagion fractions'
+        'all',
+        help='Plot a adjacency matrix of topics'
     )
 
     subparsers.add_parser(
@@ -67,7 +68,6 @@ def main(args=None):
 
     timeit = time.time()
     repo = Path(sys.argv[0]).resolve().parent.parent
-    langs = repo/'data'/'languages.csv'
     mt = repo/'data'/'mt'
     survey = mt/'survey.tsv'
     ts_1grams = mt/'timeseries'/'april_1grams'
@@ -78,12 +78,44 @@ def main(args=None):
         args = sys.argv[1:]
 
     args = parse_args(args)
-    Path(args.outdir).mkdir(parents=True, exist_ok=True)
+    Path(outdir).mkdir(parents=True, exist_ok=True)
 
-    if args.dtype == 'contagiograms':
-        vis.contagiograms(
+    if args.dtype == 'all':
+        vis.heatmaps(
             savepath=Path(outdir),
-            lang_hashtbl=Path(langs),
+            survey_path=Path(survey)
+        )
+
+        utils.stack(
+            savepath=Path(outdir),
+            survey_path=Path(survey),
+            n1_path=Path(ts_1grams)/'count.tsv',
+            n2_path=Path(ts_2grams)/'count.tsv',
+        )
+
+        utils.rank(
+            savepath=Path(outdir),
+            survey_path=Path(survey),
+            n1_path=Path(ts_1grams)/'count.tsv',
+            n2_path=Path(ts_2grams)/'count.tsv',
+        )
+
+        utils.violin(
+            savepath=Path(outdir),
+            survey_path=Path(survey),
+            n1_path=Path(ts_1grams)/'count.tsv',
+            n2_path=Path(ts_2grams)/'count.tsv',
+        )
+
+        vis.adj(
+            savepath=Path(outdir),
+            survey_path=Path(survey)
+        )
+
+    elif args.dtype == 'heatmaps':
+        vis.heatmaps(
+            savepath=Path(outdir),
+            survey_path=Path(survey)
         )
     elif args.dtype == 'adj':
         vis.adj(
@@ -108,11 +140,6 @@ def main(args=None):
             survey_path=Path(survey),
             n1_path=Path(ts_1grams)/'count.tsv',
             n2_path=Path(ts_2grams)/'count.tsv',
-        )
-    elif args.dtype == 'heatmaps':
-        vis.heatmaps(
-            savepath=Path(outdir),
-            survey_path=Path(survey)
         )
     elif args.dtype == 'violin':
         utils.violin(

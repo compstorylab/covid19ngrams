@@ -319,11 +319,11 @@ def rank(savepath, survey_path, n1_path, n2_path):
         n1_path (pathlib.Path): path to 1grams timeseries
         n2_path (pathlib.Path): path to 2grams timeseries
     """
-    ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='W', agg='sum')
+    ratings, n1, n2 = load_data(survey_path, n1_path, n2_path, resolution='M', agg='sum')
 
     for n in [n1, n2]:
         ranks = compute_vol(ratings, n)
-        ranks.index = ranks.index.strftime('%d\n%b')
+        ranks.index = ranks.index.strftime('%b')
         last = ranks.index[-1]
         ranks = ranks.T.reset_index()
 
