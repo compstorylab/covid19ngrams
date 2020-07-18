@@ -15,7 +15,7 @@ def parser():
 
     return argparse.ArgumentParser(
         formatter_class=SortedMenu,
-        description='COVID-19 Twitter Timeseries \
+        description='COVID-19 ngram timeseries \
         Copyright (c) 2020 The Computational Story Lab. Licensed under the MIT License;'
     )
 

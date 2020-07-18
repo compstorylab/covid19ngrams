@@ -16,11 +16,6 @@ def parse_args(args):
     subparsers.required = False
 
     subparsers.add_parser(
-        'mt',
-        help='update timeseries for AMT survey'
-    )
-
-    subparsers.add_parser(
         'figures',
         help='update figures'
     )
@@ -34,7 +29,6 @@ def main(args=None):
     langs = repo/'data'/'languages.csv'
     targets = repo/'data'/'rank_turbulence_divergence'
     outdir = repo/'data'/'timeseries'
-    mt = repo/'data'/'mt'
     plots = repo/'plots'
 
     if args is None:
@@ -43,16 +37,7 @@ def main(args=None):
     args = parse_args(args)
     Path(outdir).mkdir(parents=True, exist_ok=True)
 
-    if args.dtype == 'mt':
-        p = mt/'ngrams'
-        for f in p.glob('*grams.tsv'):
-            print(f.stem)
-            utils.update_mtts(
-                save_path=mt/'timeseries'/f.stem,
-                ngrams_path=f,
-                database=f.stem.split('_')[-1]
-            )
-    elif args.dtype == 'figures':
+    if args.dtype == 'figures':
         contagiograms = {
             'virus_12': [
                 ('virus', 'en'), ('virus', 'es'), ('vírus', 'pt'), ('فيروس', 'ar'),
