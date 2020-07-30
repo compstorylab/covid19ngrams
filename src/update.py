@@ -60,9 +60,9 @@ def main(args=None):
                 ('Italien', 'sv'), ('mere', 'sr'), ('manaa', 'fi'), ('BARK', 'uk'),
             ],
             'samples_2grams': [
-                ('social distancing', 'en'), ('coronavirus cases', 'en'), ('tested positive', 'en'), ('a pandemic', 'en'),
-                ('wash your', 'en'), ('from home', 'en'), ('confirmed cases', 'en'), ('hand sanitizer', 'en'),
-                ('laid off', 'en'), ('panic buying', 'en'), ('stay home', 'en'), ('toilet paper', 'en'),
+                ('social distancing', 'en'), ('public health', 'en'), ('the lockdown', 'en'), ('health workers', 'en'),
+                ('small businesses', 'en'), ('stimulus check', 'en'), ('during quarantine', 'en'), ('Anthony Fauci', 'en'),
+                ('laid off', 'en'), ('panic buying', 'en'), ('stay home', 'en'), ('cultural reset', 'en'),
             ],
         }
 

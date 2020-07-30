@@ -271,8 +271,8 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='rank'):
                     if legend:
                         ax.legend(
                             handles=[
-                                Line2D([0], [0], color=rt_color, lw=2, label=r'$RT_{f}$'),
-                                Line2D([0], [0], color=ot_color, lw=2, label=r'$OT_{f}$'),
+                                Line2D([0], [0], color=rt_color, lw=2, label='RT'),
+                                Line2D([0], [0], color=ot_color, lw=2, label='OT'),
                             ],
                             loc='upper left',
                             bbox_to_anchor=(0, 1.1),
