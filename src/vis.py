@@ -53,6 +53,7 @@ def contagiograms(
 
 def cases(
     savepath,
+    words_by_country,
     deaths,
     confirmed,
     us_deaths,
@@ -63,6 +64,7 @@ def cases(
 
     Args:
         savepath (pathlib.Path): path to save generated plot
+        words_by_country (dict): a dictionary of ngrams by country
         deaths (pathlib.Path): path to death records by JHU
         confirmed (pathlib.Path): path to case counts by JHU
         us_deaths (pathlib.Path): path to death records by JHU for the US
@@ -96,7 +98,23 @@ def cases(
     confirmed['United States'] = us_confirmed
     confirmed.index = pd.to_datetime(confirmed.index)
 
-    plot_cases(savepath, deaths, confirmed)
+    ngrams = {c: [] for c in consts.countries}
+    supported_languages = pd.read_csv(lang_hashtbl, header=0, index_col=1, comment='#')
+
+    for country, words in words_by_country.items():
+        for w, lang in words:
+            n = len(w.split())
+            print(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
+
+            q = Query(f'{n}grams', lang)
+            d = q.query_timeseries(w, start_time=datetime.datetime(2020, 1, 1))
+
+            print(f"Top rank: {d['rank'].min()} -- {d['rank'].idxmin().date()}")
+            d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
+            d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
+            ngrams[country].append(d)
+
+    plot_cases(savepath, ngrams, deaths, confirmed)
     print(f'Saved: {savepath}')
 
 
@@ -129,11 +147,8 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='rank'):
     minor_format = '%b'
     minor_locator = mdates.AutoDateLocator()
     contagion_resolution = 'D'
-
-    if metric == 'rank':
-        vmin, vmax = 0, 6
-    else:
-        vmin, vmax = -6, -1
+    metric = 'rank'
+    minr, maxr = 1, 10 ** 6
 
     i = 0
     for r in np.arange(0, rows, step=4):
@@ -161,11 +176,14 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='rank'):
             cax.xaxis.set_minor_formatter(mdates.DateFormatter(minor_format))
 
             df.dropna(inplace=True)
-            df['freq'] = df['freq'].apply(np.log10)
-            df['freq_no_rt'] = df['freq_no_rt'].apply(np.log10)
+            df['count'] = df['count'].fillna(0)
+            df['count_no_rt'] = df['count_no_rt'].fillna(0)
 
-            df['rank'] = df['rank'].apply(np.log10)
-            df['rank_no_rt'] = df['rank_no_rt'].apply(np.log10)
+            df['freq'] = df['freq'].fillna(0)
+            df['freq_no_rt'] = df['freq_no_rt'].fillna(0)
+
+            df['rank'] = df['rank'].fillna(maxr)
+            df['rank_no_rt'] = df['rank_no_rt'].fillna(maxr)
 
             at = df['count'].resample(contagion_resolution).mean()
             ot = df['count_no_rt'].resample(contagion_resolution).mean()
@@ -242,16 +260,10 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='rank'):
                     lw=0,
                 )
 
-                if metric == 'rank':
-                    ax.plot(
-                        df[metric].idxmin(), df[metric].min(),
-                        'o', ms=15, color='orangered', alpha=0.5
-                    )
-                else:
-                    ax.plot(
-                        df[metric].idxmax(), df[metric].max(),
-                        'o', ms=15, color='orangered', alpha=0.5
-                    )
+                ax.plot(
+                    df[metric].idxmin(), df[metric].min(),
+                    'o', ms=15, color='orangered', alpha=0.5
+                )
 
                 if rolling_avg:
                     ts = df[metric].rolling(window_size, center=True).mean()
@@ -265,19 +277,29 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='rank'):
                 print(f'Value error for {df.index.name}: {e}.')
                 pass
 
-            ax.grid(True, which="both", axis='both', alpha=.3, lw=1, linestyle='-')
+            ax.grid(True, which="major", axis='both', alpha=.3, lw=1, linestyle='-')
             cax.grid(True, which="both", axis='both', alpha=.3, lw=1, linestyle='-')
 
             cax.set_xticklabels([], minor=False)
             cax.set_xticklabels([], minor=True)
 
-            ax.set_ylim(vmin, vmax)
-
-            if metric == 'rank':
-                ax.set_yticks(np.arange(1, 7))
-                ax.invert_yaxis()
-            else:
-                ax.set_yticks(-1 * np.arange(2, 7))
+            ax.set_ylim(minr, maxr)
+            ax.invert_yaxis()
+            ax.set_yscale('log')
+            ax.yaxis.set_major_locator(
+                ticker.LogLocator(base=10, numticks=12)
+            )
+            ax.set_yticks(
+                [10**i for i in range(7)],
+                minor=False
+            )
+            ax.set_yticklabels(
+                ['1', '10', '100', r'$10^3$', r'$10^4$', r'$10^5$', r'$10^6$'],
+                minor=False,
+            )
+            ax.yaxis.set_minor_locator(
+                ticker.LogLocator(base=10.0, subs=np.arange(.1, 1, step=.1), numticks=30)
+            )
 
             cax.set_ylim(0, 1)
             cax.set_yticks([0, .5, 1])
@@ -290,27 +312,6 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='rank'):
 
             cax.spines['right'].set_visible(False)
             cax.spines['left'].set_visible(False)
-
-            if metric == 'rank':
-                ax.text(
-                    df[metric].idxmin(),
-                    df[metric].min()-.6,
-                    df[metric].idxmin().strftime('%Y/%m/%d'),
-                    ha='center',
-                    verticalalignment='center',
-                    #transform=ax.transAxes,
-                    color='grey'
-                )
-            else:
-                ax.text(
-                    df[metric].idxmax(),
-                    df[metric].max()+.6,
-                    df[metric].idxmax().strftime('%Y/%m/%d'),
-                    ha='center',
-                    verticalalignment='center',
-                    #transform=ax.transAxes,
-                    color='grey'
-                )
 
             i += 1
 
@@ -330,33 +331,27 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='rank'):
                         )
 
                 cax.text(
-                    -0.2, 0.5, f"RT/OT\nBalance", ha='center',
+                    -0.25, 0.5, f"RT/OT\nBalance", ha='center',
                     verticalalignment='center', transform=cax.transAxes
                 )
 
-                if metric == 'rank':
-                    ax.text(
-                        -0.2, 0.5, r"$\log_{10}$"+"\n"+r"$n$-gram"+"\nrank\n"+"$r$", ha='center',
-                        verticalalignment='center', transform=ax.transAxes
-                    )
-                else:
-                    ax.text(
-                        -0.2, 0.5, r"$\log_{10}$"+"\nRate of\nusage\n"+"$f$", ha='center',
-                        verticalalignment='center', transform=ax.transAxes
-                    )
+                ax.text(
+                    -0.25, 0.5, r"$n$-gram" + "\nrank", ha='center',
+                    verticalalignment='center', transform=ax.transAxes,
+                )
 
                 ax.text(
-                    -0.2, 0.1, "Less\nTalked\nAbout\n↓", ha='center',
+                    -0.25, 0.1, "Less\nTalked\nAbout\n↓", ha='center',
                     verticalalignment='center', transform=ax.transAxes, color='grey'
                 )
                 ax.text(
-                    -0.2, 0.9, "↑\nMore\nTalked\n About", ha='center',
+                    -0.25, 0.9, "↑\nMore\nTalked\n About", ha='center',
                     verticalalignment='center', transform=ax.transAxes, color='grey'
                 )
 
             if c == cols-1 and r == 0:
                 cax.text(
-                    .88, 1.6,
+                    .88, 1.5,
                     f"Last updated\n{df.index[-1].strftime('%Y/%m/%d')}",
                     ha='center',
                     verticalalignment='center', transform=cax.transAxes
@@ -367,11 +362,12 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='rank'):
     plt.savefig(f'{savepath}.png', dpi=300, bbox_inches='tight', pad_inches=.25)
 
 
-def plot_cases(savepath, deaths, confirmed):
+def plot_cases(savepath, ngrams, deaths, confirmed):
     """Plot a grid of contagiograms
 
     Args:
         savepath (pathlib.Path): path to save plot
+        ngrams (dict): a dictionary of ngrams by country
         deaths (pd.DataFrame): a dataframe of death records by JHU
         confirmed (pd.DataFrame): a dataframe of case counts by JHU
     """
@@ -390,11 +386,12 @@ def plot_cases(savepath, deaths, confirmed):
 
     minr, maxr = 1, 10 ** 6
     major_locator = mdates.YearLocator()
-    major_format = '\n%Y'
+    major_format = '%b\n%Y'
     minor_format = '%b'
     minor_locator = mdates.AutoDateLocator()
     start_date = datetime.datetime(2020, 1, 1)
-    end_date = confirmed.index[-1]
+    end_date = datetime.datetime.today()-datetime.timedelta(days=2)
+    window_size = 7
 
     i = 0
     for r in np.arange(0, rows, step=4):
@@ -405,24 +402,30 @@ def plot_cases(savepath, deaths, confirmed):
 
             ax.set_title(consts.countries[i], fontsize=14)
 
+            ax.annotate(
+                consts.tags[i], xy=(-.16, 1.1), color='k', weight='bold',
+                xycoords="axes fraction", fontsize=16,
+            )
+
+            for w in ngrams[consts.countries[i]]:
+                w = w[:-2]
+                w.index = pd.to_datetime(w.index)
+                w['rank'] = w['rank'].fillna(maxr)
+
+                ax.plot(
+                    w['rank'].rolling(window_size, center=True).mean(),
+                    color='dimgrey',
+                    alpha=.5
+                )
+
+            tax.plot(confirmed[consts.countries[i]], color='red')
+            tax.plot(deaths[consts.countries[i]], color='red', ls='--')
+
             ax.set_xlim(start_date, end_date)
             ax.xaxis.set_major_locator(major_locator)
             ax.xaxis.set_major_formatter(mdates.DateFormatter(major_format))
             ax.xaxis.set_minor_locator(minor_locator)
             ax.xaxis.set_minor_formatter(mdates.DateFormatter(minor_format))
-
-            tax.set_ylim(10 ** 0, 10 ** 8)
-            tax.tick_params(axis='y', labelcolor='grey')
-            tax.set_xlim(start_date, end_date)
-            tax.xaxis.set_major_locator(major_locator)
-            tax.xaxis.set_major_formatter(mdates.DateFormatter(major_format))
-            tax.xaxis.set_minor_locator(minor_locator)
-            tax.xaxis.set_minor_formatter(mdates.DateFormatter(minor_format))
-            tax.set_ylim(10**0, 10**8)
-
-            ax.plot(confirmed[consts.countries[i]], color='red')
-            tax.semilogy(confirmed[consts.countries[i]], color='grey')
-            tax.semilogy(deaths[consts.countries[i]], color='grey', ls='--')
 
             ax.set_ylim(minr, maxr)
             ax.invert_yaxis()
@@ -431,22 +434,50 @@ def plot_cases(savepath, deaths, confirmed):
                 ticker.LogLocator(base=10, numticks=12)
             )
             ax.set_yticks(
-                [1, 10, 10 ** 2, 10 ** 3, 10 ** 4, 10 ** 5, 10 ** 6],
+                [10**i for i in range(7)],
                 minor=False
             )
             ax.set_yticklabels(
                 ['1', '10', '100', r'$10^3$', r'$10^4$', r'$10^5$', r'$10^6$'],
                 minor=False,
-                color='red'
             )
             ax.yaxis.set_minor_locator(
                 ticker.LogLocator(base=10.0, subs=np.arange(.1, 1, step=.1), numticks=30)
             )
 
+            tax.spines['right'].set_color('red')
+            tax.tick_params(axis='y', which='both', colors='red', labelcolor='red')
+            tax.yaxis.label.set_color('red')
+
+            tax.set_xlim(start_date, end_date)
+            tax.xaxis.set_major_locator(major_locator)
+            tax.xaxis.set_major_formatter(mdates.DateFormatter(major_format))
+            tax.xaxis.set_minor_locator(minor_locator)
+            tax.xaxis.set_minor_formatter(mdates.DateFormatter(minor_format))
+
+            tax.set_ylim(10 ** 0, 10 ** 7)
+            tax.set_yscale('log')
+            tax.yaxis.set_major_locator(
+                ticker.LogLocator(base=10, numticks=12)
+            )
+            tax.set_yticks(
+                [10**i for i in range(8)],
+                minor=False
+            )
+            tax.set_yticklabels(
+                ['1', '10', '100', r'$10^3$', r'$10^4$', r'$10^5$', r'$10^6$', r'$10^7$'],
+                minor=False,
+            )
+            tax.yaxis.set_minor_locator(
+                ticker.LogLocator(base=10.0, subs=np.arange(.1, 1, step=.1), numticks=30)
+            )
+
+            tax.grid(True, which="major", axis='y', alpha=.3, lw=1, linestyle='-')
+
             if c == 0:
                 ax.text(
                     -0.25, 0.5, "Average\n"+r"$n$-gram"+"\nrank\n"+r"$\langle r \rangle$", ha='center',
-                    verticalalignment='center', transform=ax.transAxes, color='red'
+                    verticalalignment='center', transform=ax.transAxes,
                 )
 
                 ax.text(
@@ -461,12 +492,11 @@ def plot_cases(savepath, deaths, confirmed):
                 if r == 0:
                     ax.legend(
                         handles=[
-                            Line2D([0], [0], color='r', lw=2, label=r'$E[\tau]$'),
-                            Line2D([0], [0], color='grey', lw=2, label='Cases'),
-                            Line2D([0], [0], color='grey', ls='--', lw=2, label='Deaths'),
+                            Line2D([0], [0], lw=2, color='dimgrey', label=r'Salient $n$-gram'),
+                            Line2D([0], [0], color='r', lw=2, label='Reported cases'),
+                            Line2D([0], [0], color='r', ls='--', lw=2, label='Reported deaths'),
                         ],
-                        loc='upper left',
-                        bbox_to_anchor=(0, 1),
+                        loc='lower right',
                         ncol=1,
                         frameon=False,
                         fontsize=11,
@@ -475,20 +505,22 @@ def plot_cases(savepath, deaths, confirmed):
             if c == 2:
                 tax.set_ylabel(
                     f"Number of cases",
-                    color='grey'
+                    color='red'
                 )
+            else:
+                tax.set_yticklabels([])
 
             if c == cols - 1 and r == 0:
                 ax.text(
                     .88, 1.15,
-                    f"Last updated\n{confirmed.index[-1].strftime('%Y/%m/%d')}",
+                    f"Last updated\n{end_date.strftime('%Y/%m/%d')}",
                     ha='center',
                     verticalalignment='center', transform=ax.transAxes
                 )
 
             i += 1
 
-    plt.subplots_adjust(top=0.97, right=0.97, hspace=0.25, wspace=.25)
+    plt.subplots_adjust(top=0.97, right=0.97, hspace=0.2, wspace=.2)
     plt.savefig(f'{savepath}.pdf', bbox_inches='tight', pad_inches=.25)
     plt.savefig(f'{savepath}.png', dpi=300, bbox_inches='tight', pad_inches=.25)
 

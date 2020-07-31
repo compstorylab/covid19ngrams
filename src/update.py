@@ -6,6 +6,7 @@ from pathlib import Path
 import vis
 import cli
 import utils
+import consts
 
 
 def parse_args(args):
@@ -50,7 +51,8 @@ def main(args=None):
         us_deaths = jhu / 'time_series_covid19_deaths_US.csv'
 
         vis.cases(
-            savepath=plots / f'cases',
+            savepath=plots / f'coronagrams_cases',
+            words_by_country=consts.words_by_country,
             deaths=deaths,
             confirmed=confirmed,
             us_deaths=us_deaths,
@@ -58,43 +60,12 @@ def main(args=None):
             lang_hashtbl=Path(langs),
         )
 
-        exit()
-
-        contagiograms = {
-            'virus_12': [
-                ('virus', 'en'), ('virus', 'es'), ('vírus', 'pt'), ('فيروس', 'ar'),
-                ('바이러스', 'ko'), ('virus', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
-                ('Virus', 'de'), ('virus', 'it'), ('вирус', 'ru'), ('virus', 'tl'),
-            ],
-            'virus_24': [
-                ('virus', 'hi'), ('ویروس', 'fa'), ('وائرس', 'ur'), ('wirus', 'pl'),
-                ('virus', 'ca'), ('virus', 'nl'), ('virus', 'ta'), ('ιός', 'el'),
-                ('virus', 'sv'), ('вирус', 'sr'), ('virus', 'fi'), ('вірус', 'uk'),
-            ],
-            'samples_1grams_12': [
-                ('coronavirus', 'en'), ('cuarentena', 'es'), ('corona', 'pt'), ('كورونا', 'ar'),
-                ('바이러스', 'ko'), ('quarantaine', 'fr'), ('virus', 'id'), ('virüs', 'tr'),
-                ('Quarantäne', 'de'), ('quarantena', 'it'), ('карантин', 'ru'), ('virus', 'tl'),
-            ],
-            'samples_1grams_24': [
-                ('virus', 'hi'), ('قرنطینه', 'fa'), ('مرضی', 'ur'), ('testów', 'pl'),
-                ('confinament', 'ca'), ('virus', 'nl'), ('ரஜ', 'ta'), ('σύνορα', 'el'),
-                ('Italien', 'sv'), ('mere', 'sr'), ('manaa', 'fi'), ('BARK', 'uk'),
-            ],
-            'samples_2grams': [
-                ('social distancing', 'en'), ('public health', 'en'), ('the lockdown', 'en'), ('health workers', 'en'),
-                ('small businesses', 'en'), ('stimulus check', 'en'), ('during quarantine', 'en'), ('Anthony Fauci', 'en'),
-                ('laid off', 'en'), ('panic buying', 'en'), ('stay home', 'en'), ('cultural reset', 'en'),
-            ],
-        }
-
-        for k, words in contagiograms.items():
+        for k, words in consts.contagiograms.items():
             vis.contagiograms(
                 savepath=plots/f'contagiograms_{k}',
                 words=words,
                 lang_hashtbl=Path(langs),
             )
-
 
     else:
         for f in targets.glob('*grams'):
