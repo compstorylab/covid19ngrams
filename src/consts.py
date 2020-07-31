@@ -9,4 +9,14 @@ fonts = {
     'Tamil': fm.FontProperties(family=["Noto Sans Tamil", "sans-serif"]),
 }
 
+at_color = 'k'
+ot_color = 'C0'
+rt_color = 'C1'
 tags = 'A B C D E F G H I J K L M N O P Q R S T U V W X Y Z'.split(' ')
+
+countries = [
+    'United States', 'Brazil', 'India',
+    'Russia', 'Italy', 'Mexico',
+    'Iran', 'France', 'Germany',
+    'Saudi Arabia', 'Turkey', 'Indonesia'
+]

@@ -15,9 +15,13 @@ def parse_args(args):
     subparsers = parser.add_subparsers(help='Arguments for specific action.', dest='dtype')
     subparsers.required = False
 
-    subparsers.add_parser(
+    ff = subparsers.add_parser(
         'figures',
         help='update figures'
+    )
+    ff.add_argument(
+        'jhu',
+        help='absolute path to the COVID-19 data repository by Johns Hopkins University'
     )
 
     return parser.parse_args(args)
@@ -38,6 +42,24 @@ def main(args=None):
     Path(outdir).mkdir(parents=True, exist_ok=True)
 
     if args.dtype == 'figures':
+
+        jhu = Path(args.jhu) / 'csse_covid_19_data/csse_covid_19_time_series'
+        confirmed = jhu / 'time_series_covid19_confirmed_global.csv'
+        deaths = jhu / 'time_series_covid19_deaths_global.csv'
+        us_confirmed = jhu / 'time_series_covid19_confirmed_US.csv'
+        us_deaths = jhu / 'time_series_covid19_deaths_US.csv'
+
+        vis.cases(
+            savepath=plots / f'cases',
+            deaths=deaths,
+            confirmed=confirmed,
+            us_deaths=us_deaths,
+            us_confirmed=us_confirmed,
+            lang_hashtbl=Path(langs),
+        )
+
+        exit()
+
         contagiograms = {
             'virus_12': [
                 ('virus', 'en'), ('virus', 'es'), ('vírus', 'pt'), ('فيروس', 'ar'),
@@ -72,6 +94,8 @@ def main(args=None):
                 words=words,
                 lang_hashtbl=Path(langs),
             )
+
+
     else:
         for f in targets.glob('*grams'):
             print(f.stem)
