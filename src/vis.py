@@ -84,6 +84,7 @@ def cases(
     ).groupby(by=['Country/Region']).sum().drop(['Lat', 'Long'], axis=1).T
     deaths['United States'] = us_deaths
     deaths.index = pd.to_datetime(deaths.index)
+    deaths = deaths.diff(periods=1)
 
     us_confirmed = pd.read_csv(
         us_confirmed, header=0
@@ -97,6 +98,7 @@ def cases(
     ).groupby(by=['Country/Region']).sum().drop(['Lat', 'Long'], axis=1).T
     confirmed['United States'] = us_confirmed
     confirmed.index = pd.to_datetime(confirmed.index)
+    confirmed = confirmed.diff(periods=1)
 
     ngrams = {c: [] for c in consts.countries}
     supported_languages = pd.read_csv(lang_hashtbl, header=0, index_col=1, comment='#')
@@ -385,6 +387,7 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
     gs = fig.add_gridspec(ncols=cols, nrows=rows)
 
     minr, maxr = 1, 10 ** 6
+    minc, maxc = 1, 10 ** 5
     major_locator = mdates.YearLocator()
     major_format = '%b\n%Y'
     minor_format = '%b'
@@ -407,19 +410,35 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
                 xycoords="axes fraction", fontsize=16,
             )
 
+            tss = []
             for w in ngrams[consts.countries[i]]:
                 w = w[:-2]
                 w.index = pd.to_datetime(w.index)
                 w['rank'] = w['rank'].fillna(maxr)
+                tss.append(w['rank'])
 
                 ax.plot(
                     w['rank'].rolling(window_size, center=True).mean(),
-                    color='dimgrey',
+                    color='grey',
                     alpha=.5
                 )
 
-            tax.plot(confirmed[consts.countries[i]], color='red')
-            tax.plot(deaths[consts.countries[i]], color='red', ls='--')
+            tss = pd.DataFrame(tss).mean(axis=0)
+            ax.plot(
+                tss.rolling(window_size, center=True).mean(),
+                color='k',
+            )
+
+            tax.plot(
+                confirmed[consts.countries[i]].rolling(window_size, center=True).mean(),
+                color='red'
+            )
+
+            tax.plot(
+                deaths[consts.countries[i]].rolling(window_size, center=True).mean(),
+                color='red',
+                ls='--'
+            )
 
             ax.set_xlim(start_date, end_date)
             ax.xaxis.set_major_locator(major_locator)
@@ -455,24 +474,24 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
             tax.xaxis.set_minor_locator(minor_locator)
             tax.xaxis.set_minor_formatter(mdates.DateFormatter(minor_format))
 
-            tax.set_ylim(10 ** 0, 10 ** 7)
+            tax.set_ylim(minc, maxc)
             tax.set_yscale('log')
             tax.yaxis.set_major_locator(
                 ticker.LogLocator(base=10, numticks=12)
             )
             tax.set_yticks(
-                [10**i for i in range(8)],
+                [10**i for i in range(6)],
                 minor=False
             )
             tax.set_yticklabels(
-                ['1', '10', '100', r'$10^3$', r'$10^4$', r'$10^5$', r'$10^6$', r'$10^7$'],
+                ['1', '10', '100', r'$10^3$', r'$10^4$', r'$10^5$'],
                 minor=False,
             )
             tax.yaxis.set_minor_locator(
                 ticker.LogLocator(base=10.0, subs=np.arange(.1, 1, step=.1), numticks=30)
             )
 
-            tax.grid(True, which="major", axis='y', alpha=.3, lw=1, linestyle='-')
+            tax.grid(True, which="major", axis='y', alpha=.3, lw=1, linestyle='-', color='red')
 
             if c == 0:
                 ax.text(
@@ -492,9 +511,10 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
                 if r == 0:
                     ax.legend(
                         handles=[
-                            Line2D([0], [0], lw=2, color='dimgrey', label=r'Salient $n$-gram'),
-                            Line2D([0], [0], color='r', lw=2, label='Reported cases'),
-                            Line2D([0], [0], color='r', ls='--', lw=2, label='Reported deaths'),
+                            Line2D([0], [0], lw=2, color='k', label=r"Average rank"),
+                            Line2D([0], [0], lw=2, color='grey', label=r'Salient $n$-gram'),
+                            Line2D([0], [0], color='r', lw=2, label='New cases'),
+                            Line2D([0], [0], color='r', ls='--', lw=2, label='Reported Deaths'),
                         ],
                         loc='lower right',
                         ncol=1,
