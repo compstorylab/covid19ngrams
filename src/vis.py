@@ -386,7 +386,7 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
     fig = plt.figure(figsize=(12, 14))
     gs = fig.add_gridspec(ncols=cols, nrows=rows)
 
-    minr, maxr = 1, 10 ** 6
+    minr, maxr = 1, 10 ** 5
     minc, maxc = 1, 10 ** 5
     major_locator = mdates.YearLocator()
     major_format = '%b\n%Y'
@@ -406,7 +406,7 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
             ax.set_title(consts.countries[i], fontsize=14)
 
             ax.annotate(
-                consts.tags[i], xy=(-.16, 1.1), color='k', weight='bold',
+                consts.tags[i], xy=(-.1, 1.1), color='k', weight='bold',
                 xycoords="axes fraction", fontsize=16,
             )
 
@@ -420,7 +420,7 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
                 ax.plot(
                     w['rank'].rolling(window_size, center=True).mean(),
                     color='grey',
-                    alpha=.5
+                    alpha=.3
                 )
 
             tss = pd.DataFrame(tss).mean(axis=0)
@@ -436,7 +436,7 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
 
             tax.plot(
                 deaths[consts.countries[i]].rolling(window_size, center=True).mean(),
-                color='red',
+                color='C1',
                 ls='--'
             )
 
@@ -453,11 +453,11 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
                 ticker.LogLocator(base=10, numticks=12)
             )
             ax.set_yticks(
-                [10**i for i in range(7)],
+                [10**i for i in range(6)],
                 minor=False
             )
             ax.set_yticklabels(
-                ['1', '10', '100', r'$10^3$', r'$10^4$', r'$10^5$', r'$10^6$'],
+                ['1', '10', '100', r'$10^3$', r'$10^4$', r'$10^5$'],
                 minor=False,
             )
             ax.yaxis.set_minor_locator(
@@ -491,7 +491,7 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
                 ticker.LogLocator(base=10.0, subs=np.arange(.1, 1, step=.1), numticks=30)
             )
 
-            tax.grid(True, which="major", axis='y', alpha=.3, lw=1, linestyle='-', color='red')
+            tax.grid(True, which="major", axis='y', alpha=.3, lw=1, linestyle='-', color='C0')
 
             if c == 0:
                 ax.text(
@@ -511,20 +511,21 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
                 if r == 0:
                     ax.legend(
                         handles=[
-                            Line2D([0], [0], lw=2, color='k', label=r"Average rank"),
                             Line2D([0], [0], lw=2, color='grey', label=r'Salient $n$-gram'),
-                            Line2D([0], [0], color='r', lw=2, label='New cases'),
-                            Line2D([0], [0], color='r', ls='--', lw=2, label='Reported Deaths'),
+                            Line2D([0], [0], color='r', lw=2, label='Reported cases'),
+                            Line2D([0], [0], color='C1', ls='--', lw=2, label='Reported Deaths'),
                         ],
                         loc='lower right',
                         ncol=1,
                         frameon=False,
                         fontsize=11,
                     )
+            else:
+                ax.set_yticklabels([])
 
             if c == 2:
                 tax.set_ylabel(
-                    f"Number of cases",
+                    f"Number of new cases/deaths",
                     color='red'
                 )
             else:
@@ -540,7 +541,7 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
 
             i += 1
 
-    plt.subplots_adjust(top=0.97, right=0.97, hspace=0.2, wspace=.2)
+    plt.subplots_adjust(top=0.97, right=0.97, hspace=0.2, wspace=.15)
     plt.savefig(f'{savepath}.pdf', bbox_inches='tight', pad_inches=.25)
     plt.savefig(f'{savepath}.png', dpi=300, bbox_inches='tight', pad_inches=.25)
 
