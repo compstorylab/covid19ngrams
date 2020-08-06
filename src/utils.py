@@ -46,10 +46,10 @@ def query_lang_array(
 
     q = Query(database, lang)
     logger.info(f'Starting date: {start_date.date()}')
-    d_arr = q.query_timeseries_array(list(ngrams), start_time=start_date)
+    d_arr = q.query_timeseries_array(list(ngrams), start_time=start_date).reset_index(drop=True)
 
     for k in dfs.keys():
-        to_update = d_arr.pivot(index='time', columns='word', values=k)
+        to_update = d_arr.pivot_table(index='time', columns='word', values=k)
         to_update = to_update[to_update.index == to_update.index]  # remove NaTs in index
         dfs[k] = to_update
         dfs[k].index.name = k
