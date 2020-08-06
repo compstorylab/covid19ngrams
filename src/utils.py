@@ -5,6 +5,9 @@ import numpy as np
 from query import Query
 from pathlib import Path
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def query_lang_array(
         save_path,
@@ -42,7 +45,7 @@ def query_lang_array(
         start_date = datetime.datetime(t.year, t.month, t.day)
 
     q = Query(database, lang)
-    print(f'Starting date: {start_date.date()}')
+    logger.info(f'Starting date: {start_date.date()}')
     d_arr = q.query_timeseries_array(list(ngrams), start_time=start_date)
 
     for k in dfs.keys():
@@ -78,7 +81,7 @@ def update_timeseries(save_path, languages_path, ngrams_path, database):
         lang = supported_languages.loc[lang_code].Language
 
         for file in ngrams_path.glob(f'{lang_code}_*.tsv'):
-            print(f'{lang}: {file.stem}\n')
+            logger.info(f'{lang}: {file.stem}\n')
             ngrams = pd.read_csv(
                 file,
                 na_filter=False,
@@ -92,11 +95,11 @@ def update_timeseries(save_path, languages_path, ngrams_path, database):
             out = Path(f'{save_path}/{lang}/')
             out.mkdir(parents=True, exist_ok=True)
 
-            print(f"Retrieving: {len(ngrams)} {database} ...")
+            logger.info(f"Retrieving: {len(ngrams)} {database} ...")
             if file.stem.endswith('no_rt'):
                 query_lang_array(out, lang_code, database, ngrams, rt=False)
             else:
                 query_lang_array(out, lang_code, database, ngrams)
 
-        print('-' * 50)
+        logger.info('-' * 50)
 

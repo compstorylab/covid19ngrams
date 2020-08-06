@@ -16,6 +16,9 @@ import consts
 import warnings
 warnings.simplefilter("ignore")
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def contagiograms(
         savepath,
@@ -37,18 +40,18 @@ def contagiograms(
 
     for i, (w, lang) in enumerate(words[:12]):
         n = len(w.split())
-        print(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
+        logger.info(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
 
         q = Query(f'{n}grams', lang)
         d = q.query_timeseries(w, start_time=start_date)
 
-        print(f"Top rank: {d['rank'].min()} -- {d['rank'].idxmin().date()}")
+        logger.info(f"Top rank: {d['rank'].min()} -- {d['rank'].idxmin().date()}")
         d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
         d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
         ngrams.append(d)
 
     plot_contagiograms(savepath, ngrams, metric='rank')
-    print(f'Saved: {savepath}')
+    logger.info(f'Saved: {savepath}')
 
 
 def cases(
@@ -106,18 +109,18 @@ def cases(
     for country, words in words_by_country.items():
         for w, lang in words:
             n = len(w.split())
-            print(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
+            logger.info(f"Retrieving {supported_languages.loc[lang].Language}: {n}gram -- '{w}'")
 
             q = Query(f'{n}grams', lang)
             d = q.query_timeseries(w, start_time=datetime.datetime(2020, 1, 1))
 
-            print(f"Top rank: {d['rank'].min()} -- {d['rank'].idxmin().date()}")
+            logger.info(f"Top rank: {d['rank'].min()} -- {d['rank'].idxmin().date()}")
             d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
             d.index.name = f"{supported_languages.loc[lang].Language}\n'{w}'"
             ngrams[country].append(d)
 
     plot_cases(savepath, ngrams, deaths, confirmed)
-    print(f'Saved: {savepath}')
+    logger.info(f'Saved: {savepath}')
 
 
 def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='rank'):
@@ -276,7 +279,7 @@ def plot_contagiograms(savepath, ngrams, rolling_avg=True, metric='rank'):
                     )
 
             except ValueError as e:
-                print(f'Value error for {df.index.name}: {e}.')
+                logger.info(f'Value error for {df.index.name}: {e}.')
                 pass
 
             ax.grid(True, which="major", axis='both', alpha=.3, lw=1, linestyle='-')

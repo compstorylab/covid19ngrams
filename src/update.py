@@ -1,6 +1,7 @@
 
 import sys
 import time
+import logging
 from pathlib import Path
 
 import vis
@@ -9,23 +10,11 @@ import utils
 import consts
 
 
-def parse_args(args):
-    parser = cli.parser()
-
-    # optional subparsers
-    subparsers = parser.add_subparsers(help='Arguments for specific action.', dest='dtype')
-    subparsers.required = False
-
-    ff = subparsers.add_parser(
-        'figures',
-        help='update figures'
-    )
-    ff.add_argument(
-        'jhu',
-        help='absolute path to the COVID-19 data repository by Johns Hopkins University'
-    )
-
-    return parser.parse_args(args)
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 
 def main(args=None):
@@ -36,10 +25,7 @@ def main(args=None):
     outdir = repo/'data'/'timeseries'
     plots = repo/'plots'
 
-    if args is None:
-        args = sys.argv[1:]
-
-    args = parse_args(args)
+    args = cli.parse_args(args)
     Path(outdir).mkdir(parents=True, exist_ok=True)
 
     if args.dtype == 'figures':
@@ -69,7 +55,7 @@ def main(args=None):
 
     else:
         for f in targets.glob('*grams'):
-            print(f.stem)
+            logging.info(f.stem)
             utils.update_timeseries(
                 save_path=outdir/f.stem,
                 languages_path=langs,
@@ -77,7 +63,7 @@ def main(args=None):
                 database=f.stem.split('_')[-1]
             )
 
-    print(f'Total time elapsed: {time.time() - timeit:.2f} sec.')
+    logging.info(f'Total time elapsed: {time.time() - timeit:.2f} sec.')
 
 
 if __name__ == "__main__":
