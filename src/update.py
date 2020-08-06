@@ -3,6 +3,8 @@ import sys
 import time
 import logging
 from pathlib import Path
+from datetime import datetime
+from contagiograms import utils as cg
 
 import vis
 import cli
@@ -36,6 +38,14 @@ def main(args=None):
         us_confirmed = jhu / 'time_series_covid19_confirmed_US.csv'
         us_deaths = jhu / 'time_series_covid19_deaths_US.csv'
 
+        cg.plot(
+            consts.contagiograms,
+            savepath=plots,
+            start_date=datetime(2020, 1, 1),
+            t1="1W",
+            t2=7,
+        )
+
         vis.cases(
             savepath=plots / f'coronagrams_cases',
             words_by_country=consts.words_by_country,
@@ -45,13 +55,6 @@ def main(args=None):
             us_confirmed=us_confirmed,
             lang_hashtbl=Path(langs),
         )
-
-        for k, words in consts.contagiograms.items():
-            vis.contagiograms(
-                savepath=plots/f'contagiograms_{k}',
-                words=words,
-                lang_hashtbl=Path(langs),
-            )
 
     else:
         for f in targets.glob('*grams'):
