@@ -4,7 +4,7 @@ import time
 import logging
 from pathlib import Path
 from datetime import datetime
-from contagiograms import utils as cg
+import contagiograms
 
 import vis
 import cli
@@ -38,7 +38,7 @@ def main(args=None):
         us_confirmed = jhu / 'time_series_covid19_confirmed_US.csv'
         us_deaths = jhu / 'time_series_covid19_deaths_US.csv'
 
-        cg.plot(
+        contagiograms.plot(
             consts.contagiograms,
             savepath=plots,
             start_date=datetime(2020, 1, 1),
