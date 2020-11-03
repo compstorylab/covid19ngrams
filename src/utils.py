@@ -1,4 +1,5 @@
 
+import re
 import datetime
 import pandas as pd
 import numpy as np  
@@ -7,6 +8,56 @@ from pathlib import Path
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def filter_ngrams(save_path, ngrams_path, languages_path):
+    """Filter out Twitter-specific content
+
+    Args:
+        save_path (pathlib.Path): path to save generated timeseries
+        ngrams_path (pathlib.Path): path to parse requested ngrams
+        languages_path (pathlib.Path): path to parse requested languages
+    """
+    supported_languages = pd.read_csv(languages_path, header=0, index_col=1, comment='#')
+    regex = re.compile(
+        r'(&\S+;)|(http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+\S+)'
+    )
+
+    for lang_code in supported_languages.index:
+        for file in ngrams_path.glob(f'{lang_code}_*.tsv'):
+            ngrams = pd.read_csv(
+                file,
+                na_filter=False,
+                sep='\t',
+                encoding='utf8',
+                header=None,
+                quotechar=None,
+                quoting=3,
+                names=['ngram', 'rankdiv']
+            )
+
+            out = Path(f'{save_path}')
+            out.mkdir(parents=True, exist_ok=True)
+
+            inds = []
+            for k, i in enumerate(ngrams['ngram']):
+                ws = i.split(' ')
+
+                if any([bool(w.startswith('@')) for w in ws]):
+                    inds.append(k)
+
+                if any([bool(w in "!#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~") for w in ws]):
+                    inds.append(k)
+
+                if any([bool(regex.findall(w)) for w in ws]):
+                    inds.append(k)
+
+            ngrams = ngrams.drop(inds)
+            ngrams.set_index('ngram', inplace=True)
+            ngrams.to_csv(f'{save_path / file.stem}.tsv', sep='\t', header=False)
+            logger.info(f'{save_path / file.stem}.tsv')
+
+        logger.info('-' * 50)
 
 
 def query_lang_array(
