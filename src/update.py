@@ -38,13 +38,14 @@ def main(args=None):
         us_confirmed = jhu / 'time_series_covid19_confirmed_US.csv'
         us_deaths = jhu / 'time_series_covid19_deaths_US.csv'
 
+        '''
         contagiograms.plot(
             consts.contagiograms,
             savepath=plots,
             start_date=datetime(2020, 1, 1),
             t1="1W",
             t2=7,
-        )
+        )'''
 
         vis.cases(
             savepath=plots / f'coronagrams_cases',
@@ -57,12 +58,13 @@ def main(args=None):
         )
 
     else:
-        for f in targets.glob('*grams'):
-            logging.info(f.stem)
+        for f in targets.rglob('*grams'):
+            logging.info(f'{f.parent.stem}|{f.stem}')
+
             utils.update_timeseries(
-                save_path=outdir/f.stem,
+                save_path=outdir/f.parent.stem/f.stem,
                 languages_path=langs,
-                ngrams_path=targets/f.stem,
+                ngrams_path=f,
                 database=f.stem.split('_')[-1]
             )
 

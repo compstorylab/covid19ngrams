@@ -1,5 +1,5 @@
 
-import re
+import regex as re
 import datetime
 import pandas as pd
 import numpy as np  
@@ -20,11 +20,20 @@ def filter_ngrams(save_path, ngrams_path, languages_path):
     """
     supported_languages = pd.read_csv(languages_path, header=0, index_col=1, comment='#')
     regex = re.compile(
-        r'(&\S+;)|(http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+\S+)'
+        r'(RT)|(rt)|'  # retweet prefix
+        r'(&\S+;)|'  # html codes
+        r'([^\P{P}]+)|'  # punctuations
+        r'([^\P{M}]+)|'  # accents
+        r'([^\P{S}]+)|'  # symbols
+        r'([^\P{Z}]+)|'  # separators
+        r'([^\P{C}]+)|'  # others
+        r'(http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+\S+)',  # links
     )
 
     for lang_code in supported_languages.index:
         for file in ngrams_path.glob(f'{lang_code}_*.tsv'):
+            print(file)
+
             ngrams = pd.read_csv(
                 file,
                 na_filter=False,
@@ -44,9 +53,6 @@ def filter_ngrams(save_path, ngrams_path, languages_path):
                 ws = i.split(' ')
 
                 if any([bool(w.startswith('@')) for w in ws]):
-                    inds.append(k)
-
-                if any([bool(w in "!#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~") for w in ws]):
                     inds.append(k)
 
                 if any([bool(regex.findall(w)) for w in ws]):

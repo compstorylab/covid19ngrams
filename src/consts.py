@@ -14,13 +14,6 @@ ot_color = 'C0'
 rt_color = 'C1'
 tags = 'A B C D E F G H I J K L M N O P Q R S T U V W X Y Z'.split(' ')
 
-countries = [
-    'United States', 'Brazil', 'India',
-    'Russia', 'Italy', 'Mexico',
-    'Iran', 'France', 'Germany',
-    'Saudi Arabia', 'Turkey', 'Indonesia'
-]
-
 
 contagiograms = {
     'virus_12': [
@@ -52,39 +45,51 @@ contagiograms = {
 
 words_by_country = {
     'United States': [
-        ('virus', 'en'), ('coronavirus', 'en'), ('COVID-19', 'en'), ('pandemic', 'en'), ('#COVID19', 'en')
+        ('coronavirus', 'en'), ('pandemic', 'en'), ('virus', 'en'), ('lockdown', 'en'), ('quarantine', 'en'),
+        ('deaths', 'en'), ('masks', 'en'), ('cases', 'en'), ('distancing', 'en'), ('China', 'en'),
     ],
     'Brazil': [
-        ('vírus', 'pt'), ('corona', 'pt'), ('quarentena', 'pt'), ('coronavírus', 'pt'), ('#COVID19', 'pt')
+        ('quarentena', 'pt'), ('Babu', 'pt'), ('live', 'pt'), ('Manu', 'pt'), ('Thelma', 'pt'),
+        ('pandemia', 'pt'), ('Rafa', 'pt'), ('coronavírus', 'pt'), ('vírus', 'pt'), ('Gizelly', 'pt'),
     ],
     'India': [
-        ('virus', 'hi'), ('मरकज', 'hi'), ('तबल', 'hi'), ('#lockdown', 'hi'), ('#COVID19', 'hi')
+        ('यरस', 'hi'), ('तबल', 'hi'), ('मरकज', 'hi'), ('Asharamji', 'hi'), ('तरजन', 'hi'),
+        ('Lockdown', 'hi'), ('Corona', 'hi'), ('शट', 'hi'), ('PPE', 'hi'), ('टहन', 'hi'),
     ],
     'Russia': [
-        ('вирус', 'ru'), ('карантин', 'ru'), ('коронавируса', 'ru'), ('самоизоляции', 'ru'), ('#COVID19', 'ru')
-    ],
-    'Italy': [
-        ('virus', 'it'), ('quarantena', 'it'), ('Coronavirus', 'it'), ('pandemia', 'it'), ('#COVID19', 'it')
+        ('коронавируса', 'ru'), ('коронавирусом', 'ru'), ('карантина', 'ru'), ('самоизоляции', 'ru'), ('карантин', 'ru'),
+        ('коронавирус', 'ru'), ('пандемии', 'ru'), ('карантине', 'ru'), ('маски', 'ru'), ('эпидемии', 'ru'),
     ],
     'Mexico': [
-        ('virus', 'es'), ('coronavirus', 'es'), ('cuarentena', 'es'), ('pandemia', 'es'), ('#COVID19', 'es')
+        ('cuarentena', 'es'), ('pandemia', 'es'), ('coronavirus', 'es'), ('virus', 'es'), ('confinamiento', 'es'),
+        ('mascarillas', 'es'), ('casos', 'es'), ('salud', 'es'), ('sanitaria', 'es'), ('fallecidos', 'es'),
     ],
     'Iran': [
-        ('ویروس', 'fa'), ('قرنطینه', 'fa'), ('کرونا', 'fa'), ('#كرونا', 'fa'), ('#کروناویروس', 'fa')
+        ('کرونا', 'fa'), ('ویروس', 'fa'), ('قرنطینه', 'fa'), ('ماسک', 'fa'), ('چین', 'fa'),
+        ('شیوع', 'fa'), ('بهداشت', 'fa'), ('مبتلا', 'fa'), ('ساعات', 'fa'), ('بیماری', 'fa'),
+    ],
+    'Korea, South': [
+        ('코로나', 'ko'), ('한승우', 'ko'), ('승우', 'ko'), ('n번방', 'ko'), ('코로나19', 'ko'),
+        ('마스크', 'ko'), ('스위치', 'ko'), ('해찬', 'ko'), ('#스밍', 'ko'), ('N번방', 'ko'),
+    ],
+    'Italy': [
+        ('Coronavirus', 'it'), ('quarantena', 'it'), ('virus', 'it'), ('MES', 'it'), ('mascherine', 'it'),
+        ('Lombardia', 'it'), ('pandemia', 'it'), ('Conte', 'it'), ('contagi', 'it'), ('mascherina', 'it'),
     ],
     'France': [
-        ('virus', 'fr'), ('quarantaine', 'fr'), ('confinement', 'fr'), ('Coronavirus', 'fr'), ('#COVID19', 'fr')
+        ('confinement', 'fr'), ('masques', 'fr'), ('Coronavirus', 'fr'), ('virus', 'fr'), ('masque', 'fr'),
+        ('pandémie', 'fr'), ('sanitaire', 'fr'), ('crise', 'fr'), ('tests', 'fr'), ('soignants', 'fr'),
     ],
     'Germany': [
-        ('Virus', 'de'), ('Corona', 'de'), ('Coronavirus', 'de'), ('Quarantäne', 'de'), ('#COVID19', 'de')
+        ('Corona', 'de'), ('Masken', 'de'), ('Virus', 'de'), ('GT', 'de'), ('Krise', 'de'),
+        ('Coronavirus', 'de'), ('Pandemie', 'de'), ('Maske', 'de'), ('Abstand', 'de'), ('bgt', 'de'),
     ],
-    'Saudi Arabia': [
-        ('فيروس', 'ar'), ('كورونا', 'ar'), ('الوباء', 'ar'), ('#فيروس_كورونا', 'ar'), ('#كورونا', 'ar')
+    'Sweden': [
+        ('Tegnell', 'sv'), ('Corona', 'sv'), ('Ak', 'sv'), ('FHM', 'sv'), ('ak', 'sv'),
+        ('makasii', 'sv'), ('tidur', 'sv'), ('smittade', 'sv'), ('viruset', 'sv'), ('bgt', 'sv'),
     ],
     'Turkey': [
-        ('virüs', 'tr'), ('Koronavirüs', 'tr'), ('maske', 'tr'), ('korona', 'tr'), ('#COVID19', 'tr')
-    ],
-    'Indonesia': [
-        ('virus', 'id'), ('corona', 'id'), ('pandemi', 'id'), ('masker', 'id'), ('#COVID19', 'id')
+        ('maske', 'tr'), ('virüs', 'tr'), ('çıkma', 'tr'), ('sağlık', 'tr'), ('koronavirüs', 'tr'),
+        ('vaka', 'tr'), ('Sağlık', 'tr'), ('evde', 'tr'), ('yardım', 'tr'), ('yasağı', 'tr'),
     ],
 }

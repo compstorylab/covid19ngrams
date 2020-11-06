@@ -68,7 +68,7 @@ def cases(
     confirmed.index = pd.to_datetime(confirmed.index)
     confirmed = confirmed.diff(periods=1)
 
-    ngrams = {c: [] for c in consts.countries}
+    ngrams = {c: [] for c in list(words_by_country.keys())}
     supported_languages = pd.read_csv(lang_hashtbl, header=0, index_col=1, comment='#')
 
     for country, words in words_by_country.items():
@@ -127,7 +127,7 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
             ax = fig.add_subplot(gs[r:r+3, c])
             tax = ax.twinx()
 
-            ax.set_title(consts.countries[i], fontsize=14)
+            ax.set_title(list(consts.words_by_country.keys())[i], fontsize=14)
 
             ax.annotate(
                 consts.tags[i], xy=(-.1, 1.1), color='k', weight='bold',
@@ -135,7 +135,7 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
             )
 
             tss = []
-            for w in ngrams[consts.countries[i]]:
+            for w in ngrams[list(consts.words_by_country.keys())[i]]:
                 w = w[:-2]
                 w.index = pd.to_datetime(w.index)
                 w['rank'] = w['rank'].fillna(maxr)
@@ -154,12 +154,12 @@ def plot_cases(savepath, ngrams, deaths, confirmed):
             )
 
             tax.plot(
-                confirmed[consts.countries[i]].rolling(window_size, center=True).mean(),
+                confirmed[list(consts.words_by_country.keys())[i]].rolling(window_size, center=True).mean(),
                 color='red'
             )
 
             tax.plot(
-                deaths[consts.countries[i]].rolling(window_size, center=True).mean(),
+                deaths[list(consts.words_by_country.keys())[i]].rolling(window_size, center=True).mean(),
                 color='C1',
                 ls='--'
             )
