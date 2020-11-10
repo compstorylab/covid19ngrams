@@ -39,25 +39,83 @@ as well as for retrospective investigations.
 
 We share and maintain all data on an internal server. 
 For each of the 24 languages, 
-we provide time series for the top 1000 1-, and 2-grams for both all tweets (AT)
-and organic tweets (OT). 
+we provide time series for the top 1000 1-, and 2-grams for both all tweets (`AT`)
+and organic tweets (`OT`). 
  
 Note that in general, a 1-gram in the AT group may not appear in the OT group, 
 as we start with only 10% of all tweets—a singular, highly retweeted tweet may contain 1-grams 
 that are not produced organically by other users on that day 
 (see [our work](https://arxiv.org/abs/2007.12988) for technical details).
 
+We observe variations in punctuation and grammatical structures.
+All of these non-pandemic-related elements may of course be filtered out
+for individual languages by hand.
+Nonetheless, we provide a `cleaned` version of the dataset whereby we filter out links, handles, punctuation marks, and emojis while keeping hashtags. 
+
+We also note that our decision to respect capitalization is substantive, 
+however, it consequently leads to new but overlapping n-grams 
+to be included in our data.
+Thus, we also share a `case_insensitive` version of our dataset 
+to account for that. 
+
 For each language, 
 we export **(T x N)** matrices,
 where every row is a date index and every column is a unique n-gram
 from the top 1000 n-grams including:
 
+- Absloute count [`count`, `count_no_rt`]
 - Relative rate of usage [`freq`, `freq_no_rt`]
 - Word rank [`rank`, `rank_no_rt`]
 
+
+```
+timeseries
+├── raw
+│   ├── april_top_1grams
+│   ├── april_top_2grams
+│   ├── april_case_insensitive_top_1grams
+│   └── april_case_insensitive_top_2grams
+└── cleaned
+    ├── april_top_1grams
+    ├── april_top_2grams
+    ├── april_case_insensitive_top_1grams
+    └── april_case_insensitive_top_2grams
+        ├── Arabic
+        ├── Catalan
+        ├── Dutch
+        ├── English
+        │   ├── count_no_rt.tsv
+        │   ├── count.tsv
+        │   ├── freq_no_rt.tsv
+        │   ├── freq.tsv
+        │   ├── rank_no_rt.tsv
+        │   └── rank.tsv
+        ├── Finnish
+        ├── French
+        ├── German
+        ├── Greek
+        ├── Hindi
+        ├── Indonesian
+        ├── Italian
+        ├── Korean
+        ├── Persian
+        ├── Polish
+        ├── Portuguese
+        ├── Russian
+        ├── Serbian
+        ├── Spanish
+        ├── Swedish
+        ├── Tagalog
+        ├── Tamil
+        ├── Turkish
+        ├── Ukrainian
+        └── Urdu
+```
+
 ```bash
-URL="http://storylab.w3.uvm.edu/share/data/covid19ngrams/data/timeseries"
-ngrams="april_top_1grams april_top_2grams"
+version="cleaned"
+URL="http://storylab.w3.uvm.edu/share/data/covid19ngrams/data/timeseries/$version"
+ngrams="april_top_1grams april_top_2grams april_case_insensitive_top_1grams april_case_insensitive_top_2grams"
 languages="English French Portuguese Spanish German Arabic"
 metrics="rank freq"
 for n in $ngrams; do

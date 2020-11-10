@@ -38,15 +38,14 @@ def main(args=None):
         us_confirmed = jhu / 'time_series_covid19_confirmed_US.csv'
         us_deaths = jhu / 'time_series_covid19_deaths_US.csv'
 
-        '''
         contagiograms.plot(
             consts.contagiograms,
             savepath=plots,
             start_date=datetime(2020, 1, 1),
             t1="1W",
             t2=7,
-        )'''
-
+        )
+        
         vis.cases(
             savepath=plots / f'coronagrams_cases',
             words_by_country=consts.words_by_country,

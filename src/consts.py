@@ -49,12 +49,12 @@ words_by_country = {
         ('deaths', 'en'), ('masks', 'en'), ('cases', 'en'), ('distancing', 'en'), ('China', 'en'),
     ],
     'Brazil': [
-        ('quarentena', 'pt'), ('Babu', 'pt'), ('live', 'pt'), ('Manu', 'pt'), ('Thelma', 'pt'),
-        ('pandemia', 'pt'), ('Rafa', 'pt'), ('coronavírus', 'pt'), ('vírus', 'pt'), ('Gizelly', 'pt'),
+        ('quarentena', 'pt'), ('coronavírus', 'pt'), ('vírus', 'pt'), ('paredão', 'pt'), ('isolamento', 'pt'),
+        ('corona', 'pt'), ('governadores', 'pt'), ('China', 'pt'), ('máscara', 'pt'), ('casos', 'pt'),
     ],
     'India': [
-        ('यरस', 'hi'), ('तबल', 'hi'), ('मरकज', 'hi'), ('Asharamji', 'hi'), ('तरजन', 'hi'),
-        ('Lockdown', 'hi'), ('Corona', 'hi'), ('शट', 'hi'), ('PPE', 'hi'), ('टहन', 'hi'),
+        ('तरजन', 'hi'), ('Lockdown', 'hi'), ('Corona', 'hi'), ('शट', 'hi'), ('PPE', 'hi'), 
+        ('ऊन', 'hi'), ('Sadhna', 'hi'), ('आपद', 'hi'), ('Tvईश', 'hi'), ('WHO', 'hi'), 
     ],
     'Russia': [
         ('коронавируса', 'ru'), ('коронавирусом', 'ru'), ('карантина', 'ru'), ('самоизоляции', 'ru'), ('карантин', 'ru'),
@@ -69,27 +69,27 @@ words_by_country = {
         ('شیوع', 'fa'), ('بهداشت', 'fa'), ('مبتلا', 'fa'), ('ساعات', 'fa'), ('بیماری', 'fa'),
     ],
     'Korea, South': [
-        ('코로나', 'ko'), ('한승우', 'ko'), ('승우', 'ko'), ('n번방', 'ko'), ('코로나19', 'ko'),
-        ('마스크', 'ko'), ('스위치', 'ko'), ('해찬', 'ko'), ('#스밍', 'ko'), ('N번방', 'ko'),
+        ('바이러스', 'ko'), ('코로나', 'ko'), ('코로나19', 'ko'), ('마스크', 'ko'), ('온라인', 'ko'), 
+        ('사회적', 'ko'), ('확진자', 'ko'), ('신상공개', 'ko'), ('커버', 'ko'), ('모집', 'ko'),
     ],
     'Italy': [
-        ('Coronavirus', 'it'), ('quarantena', 'it'), ('virus', 'it'), ('MES', 'it'), ('mascherine', 'it'),
-        ('Lombardia', 'it'), ('pandemia', 'it'), ('Conte', 'it'), ('contagi', 'it'), ('mascherina', 'it'),
+        ('Coronavirus', 'it'), ('quarantena', 'it'), ('virus', 'it'), ('mascherine', 'it'), ('pandemia', 'it'),
+        ('Conte', 'it'), ('contagi', 'it'), ('mascherina', 'it'), ('Covid', 'it'), ('lockdown', 'it'),
     ],
     'France': [
         ('confinement', 'fr'), ('masques', 'fr'), ('Coronavirus', 'fr'), ('virus', 'fr'), ('masque', 'fr'),
         ('pandémie', 'fr'), ('sanitaire', 'fr'), ('crise', 'fr'), ('tests', 'fr'), ('soignants', 'fr'),
     ],
     'Germany': [
-        ('Corona', 'de'), ('Masken', 'de'), ('Virus', 'de'), ('GT', 'de'), ('Krise', 'de'),
-        ('Coronavirus', 'de'), ('Pandemie', 'de'), ('Maske', 'de'), ('Abstand', 'de'), ('bgt', 'de'),
+        ('Corona', 'de'), ('Masken', 'de'), ('Virus', 'de'), ('Krise', 'de'), ('Coronavirus', 'de'),
+        ('Pandemie', 'de'), ('Maske', 'de'), ('Abstand', 'de'), ('Quarantäne', 'de'), ('Lockdown', 'de'),
     ],
     'Sweden': [
-        ('Tegnell', 'sv'), ('Corona', 'sv'), ('Ak', 'sv'), ('FHM', 'sv'), ('ak', 'sv'),
-        ('makasii', 'sv'), ('tidur', 'sv'), ('smittade', 'sv'), ('viruset', 'sv'), ('bgt', 'sv'),
+        ('Corona', 'sv'), ('smittade', 'sv'), ('viruset', 'sv'), ('coronakrisen', 'sv'), ('äldreboenden', 'sv'),
+        ('skyddsutrustning', 'sv'), ('dödsfall', 'sv'), ('krisen', 'sv'), ('munskydd', 'sv'), ('döda', 'sv'),
     ],
     'Turkey': [
         ('maske', 'tr'), ('virüs', 'tr'), ('çıkma', 'tr'), ('sağlık', 'tr'), ('koronavirüs', 'tr'),
-        ('vaka', 'tr'), ('Sağlık', 'tr'), ('evde', 'tr'), ('yardım', 'tr'), ('yasağı', 'tr'),
+        ('vaka', 'tr'), ('evde', 'tr'), ('yardım', 'tr'), ('yasağı', 'tr'), ('Korona', 'tr'),
     ],
 }
