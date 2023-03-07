@@ -114,7 +114,7 @@ timeseries
 
 ```bash
 version="cleaned"
-URL="http://storylab.w3.uvm.edu/share/data/covid19ngrams/data/timeseries/$version"
+URL="https://storylab.w3.uvm.edu/share/data/covid19ngrams/data/timeseries/$version"
 ngrams="april_top_1grams april_top_2grams april_case_insensitive_top_1grams april_case_insensitive_top_2grams"
 languages="English French Portuguese Spanish German Arabic"
 metrics="rank freq"
